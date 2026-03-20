@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
             $userId = DB::table('users')->insertGetId([
                 'name' => $client['name'],
                 'email' => $client['email'],
-                'password' => Hash::make('123'),
+                'password' => Hash::make('password123'),
                 'role' => 'client',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -65,7 +65,7 @@ class UserSeeder extends Seeder
             $userId = DB::table('users')->insertGetId([
                 'name' => $freelancer['name'],
                 'email' => $freelancer['email'],
-                'password' => Hash::make('123'),
+                'password' => Hash::make('password123'),
                 'role' => 'freelancer',
                 'created_at' => now(),
                 'updated_at' => now(),
