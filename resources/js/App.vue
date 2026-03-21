@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen flex flex-col">
     <!-- Navbar -->
-    <AppNavbar v-if="$route.meta.layout !== 'auth'" />
+    <AppNavbar v-if="$route.meta.layout !== 'auth'" @toggle-sidebar="sidebarOpen = !sidebarOpen" />
 
     <!-- Main Content -->
     <div class="flex-1 flex items-start">
@@ -13,7 +13,7 @@
       />
 
       <!-- Page Content -->
-      <main class="flex-1 min-h-[calc(100vh-4rem)]">
+      <main class="flex-1 min-w-0 min-h-[calc(100vh-4rem)]">
         <RouterView />
       </main>
     </div>

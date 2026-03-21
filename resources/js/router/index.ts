@@ -4,7 +4,13 @@ import { useAuthStore } from '@/stores/auth'
 // Lazy load views
 const LoginView = () => import('@/views/Auth/LoginView.vue')
 const RegisterView = () => import('@/views/Auth/RegisterView.vue')
+
+// Client
 const ClientDashboardView = () => import('@/views/Client/DashboardView.vue')
+const ClientMyProjectsView = () => import('@/views/Client/MyProjectsView.vue')
+const ClientCreateProjectView = () => import('@/views/Client/CreateProjectView.vue')
+
+// Freelancer
 const FreelancerJobExplorerView = () => import('@/views/Freelancer/JobExplorerView.vue')
 
 const routes: RouteRecordRaw[] = [
@@ -31,6 +37,18 @@ const routes: RouteRecordRaw[] = [
     path: '/client/dashboard',
     name: 'client-dashboard',
     component: ClientDashboardView,
+    meta: { requiresAuth: true, role: 'client' },
+  },
+  {
+    path: '/client/projects',
+    name: 'client-projects',
+    component: ClientMyProjectsView,
+    meta: { requiresAuth: true, role: 'client' },
+  },
+  {
+    path: '/client/projects/create',
+    name: 'client-project-create',
+    component: ClientCreateProjectView,
     meta: { requiresAuth: true, role: 'client' },
   },
 

@@ -2,13 +2,26 @@
   <nav class="bg-white shadow sticky top-0 z-40 h-16">
     <div class="max-w-7xl mx-auto px-4 h-full">
       <div class="flex items-center justify-between h-full">
-        <!-- Logo -->
-        <RouterLink to="/" class="flex items-center gap-2">
-          <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span class="text-white font-bold text-sm">FC</span>
-          </div>
-          <span class="font-bold text-lg hidden sm:inline">Freelance Connect</span>
-        </RouterLink>
+        <div class="flex items-center gap-2">
+          <!-- Mobile Sidebar Toggle -->
+          <button
+            v-if="authStore.isLoggedIn"
+            @click="$emit('toggle-sidebar')"
+            class="md:hidden p-2 hover:bg-gray-100 rounded transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+
+          <!-- Logo -->
+          <RouterLink to="/" class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span class="text-white font-bold text-sm">FC</span>
+            </div>
+            <span class="font-bold text-lg hidden sm:inline">Freelance Connect</span>
+          </RouterLink>
+        </div>
 
         <!-- Desktop Menu (Empty - Navigation moved to Sidebar) -->
 
@@ -114,6 +127,8 @@ const router = useRouter()
 const authStore = useAuthStore()
 const showUserMenu = ref(false)
 const showMobileMenu = ref(false)
+
+defineEmits(['toggle-sidebar'])
 
 const avatarUrl = computed(() => {
   return authStore.user?.avatar_url || '/img/avatar.png'

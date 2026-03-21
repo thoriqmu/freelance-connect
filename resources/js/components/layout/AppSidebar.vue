@@ -74,7 +74,7 @@
     <div
       v-if="isOpen && isMobile"
       @click="emitClose"
-      class="fixed inset-0 bg-black bg-opacity-50 md:hidden z-20"
+      class="fixed inset-0 top-16 bg-gray-900/50 md:hidden z-20"
     ></div>
   </Transition>
 </template>
@@ -89,7 +89,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  isOpen: true,
+  isOpen: false,
 })
 
 const emit = defineEmits<{

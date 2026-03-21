@@ -169,9 +169,7 @@
               </button>
             </div>
 
-            <p class="text-gray-600 mb-4 line-clamp-2">
-              {{ job.description || 'No description provided' }}
-            </p>
+            <div class="text-gray-600 mb-4 line-clamp-2 prose prose-sm max-w-none" v-html="job.description || 'No description provided'"></div>
 
             <div v-if="job.required_skills" class="flex flex-wrap gap-2 mb-4">
               <BaseBadge v-for="skill in (typeof job.required_skills === 'string' ? JSON.parse(job.required_skills) : job.required_skills)" :key="skill" type="info">

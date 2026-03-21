@@ -150,16 +150,14 @@
 
           <!-- Projects List -->
           <div v-else-if="projects.length > 0" class="space-y-4">
-            <div v-for="project in projects" :key="project.id" class="card space-y-3">
+            <div v-for="project in projects.slice(0, 3)" :key="project.id" class="card space-y-3">
               <div class="flex items-start justify-between">
                 <h3 class="text-lg font-bold">{{ project.title }}</h3>
                 <BaseBadge :type="getStatusType(project.status)">
                   {{ formatStatus(project.status) }}
                 </BaseBadge>
               </div>
-              <p class="text-gray-600 text-sm line-clamp-2">
-                {{ project.description }}
-              </p>
+              <div class="text-gray-600 text-sm line-clamp-2 prose prose-sm max-w-none" v-html="project.description"></div>
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-3 border-t border-gray-200 text-sm">
                 <div>
                   <p class="text-gray-500">Budget</p>
@@ -181,7 +179,7 @@
                   <RouterLink :to="`/client/projects/${project.id}`">
                     <BaseButton
                       label="View Details"
-                      size="sm"
+                      variant="primary"
                     />
                   </RouterLink>
                 </div>

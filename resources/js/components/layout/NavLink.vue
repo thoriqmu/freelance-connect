@@ -27,6 +27,9 @@ const props = defineProps<Props>()
 const route = useRoute()
 
 const isActive = computed(() => {
+  if (props.to === '/client/projects') {
+    return route.path === '/client/projects' || /^\/client\/projects\/\d+/.test(route.path)
+  }
   return route.path.startsWith(props.to)
 })
 
