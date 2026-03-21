@@ -9,6 +9,7 @@ const RegisterView = () => import('@/views/Auth/RegisterView.vue')
 const ClientDashboardView = () => import('@/views/Client/DashboardView.vue')
 const ClientMyProjectsView = () => import('@/views/Client/MyProjectsView.vue')
 const ClientCreateProjectView = () => import('@/views/Client/CreateProjectView.vue')
+const ClientProjectDetailView = () => import('@/views/Client/ProjectDetailView.vue')
 
 // Freelancer
 const FreelancerJobExplorerView = () => import('@/views/Freelancer/JobExplorerView.vue')
@@ -49,6 +50,12 @@ const routes: RouteRecordRaw[] = [
     path: '/client/projects/create',
     name: 'client-project-create',
     component: ClientCreateProjectView,
+    meta: { requiresAuth: true, role: 'client' },
+  },
+  {
+    path: '/client/projects/:id',
+    name: 'client-project-detail',
+    component: ClientProjectDetailView,
     meta: { requiresAuth: true, role: 'client' },
   },
 

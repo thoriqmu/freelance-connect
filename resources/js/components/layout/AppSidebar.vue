@@ -54,6 +54,12 @@
           @click="emitClose"
         />
         <NavLink
+          to="/freelancer/my-proposals"
+          icon="briefcase"
+          label="My Proposals"
+          @click="emitClose"
+        />
+        <NavLink
           to="/freelancer/earnings"
           icon="wallet"
           label="Earnings"

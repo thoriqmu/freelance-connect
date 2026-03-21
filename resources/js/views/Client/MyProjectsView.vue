@@ -39,8 +39,14 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="flex justify-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <div v-if="isLoading" class="space-y-4">
+      <div v-for="i in 3" :key="i" class="card animate-pulse">
+        <div class="space-y-3">
+          <div class="h-6 bg-gray-200 rounded w-1/2"></div>
+          <div class="h-4 bg-gray-200 rounded w-full"></div>
+          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Error State -->
