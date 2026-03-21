@@ -26,6 +26,7 @@ class StoreProjectRequest extends FormRequest
             'title' => 'required|string|max:255',
             'description' => 'required|string|min:10',
             'budget' => 'required|numeric|min:0',
+            'timeline' => 'required|integer|min:1',
         ];
     }
 }

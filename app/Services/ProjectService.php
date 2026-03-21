@@ -50,12 +50,24 @@ class ProjectService
     /**
      * Get user's projects
      */
-    public function getUserProjects(int $clientId, int $perPage = 10): LengthAwarePaginator
+    public function getUserProjects(int $clientId, int $perPage = 10, array $filters = []): LengthAwarePaginator
     {
-        return Project::where('client_id', $clientId)
+        $query = Project::where('client_id', $clientId)
             ->with(['client.user', 'freelancer.user', 'projectAttachments'])
-            ->withCount('proposals')
-            ->latest()
+            ->withCount('proposals');
+
+        if (!empty($filters['search'])) {
+            $query->where(function($q) use ($filters) {
+                $q->where('title', 'like', "%{$filters['search']}%")
+                  ->orWhere('description', 'like', "%{$filters['search']}%");
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        return $query->latest()
             ->paginate($perPage);
     }
 
@@ -71,6 +83,7 @@ class ProjectService
                 'title' => $data['title'],
                 'description' => $data['description'],
                 'budget' => $data['budget'],
+                'timeline' => $data['timeline'],
                 'status' => ProjectStatus::OPEN->value,
             ]);
 

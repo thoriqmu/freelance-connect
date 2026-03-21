@@ -190,7 +190,8 @@ class ProjectController extends Controller
 
             $projects = $this->projectService->getUserProjects(
                 $clientProfile->id,
-                $request->input('per_page', 10)
+                $request->input('per_page', 10),
+                $request->only('search', 'status')
             );
 
             return $this->successResponse('Success', $projects, 200);
