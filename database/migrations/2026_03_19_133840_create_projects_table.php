@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->decimal('budget', 10, 2);
+            $table->integer('timeline');
             $table->enum('status', ['archived', 'open', 'in_progress', 'completed'])->default('open');
             $table->timestamps();
         });

@@ -28,6 +28,7 @@ class ProjectSeeder extends Seeder
                 'title' => 'Project ' . $i . ' - ' . Str::random(8),
                 'description' => 'This is a sample project description for project ' . $i . '.',
                 'budget' => rand(500, 5000),
+                'timeline' => rand(1, 12),
                 'status' => 'open',
             ]);
         }

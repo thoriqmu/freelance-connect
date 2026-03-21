@@ -70,4 +70,12 @@ class Project extends Model
     {
         return $this->hasMany(Message::class);
     }
+
+    /**
+     * Get all proposals for this project.
+     */
+    public function proposals(): HasMany
+    {
+        return $this->hasMany(Proposal::class);
+    }
 }

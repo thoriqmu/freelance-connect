@@ -25,7 +25,7 @@ class ProjectController extends Controller
     {
         try {
             $projects = $this->projectService->getPaginatedProjects(
-                filters: $request->only('search', 'min_budget', 'max_budget'),
+                filters: $request->only('search', 'min_budget', 'max_budget', 'sort_by', 'sort_order'),
                 perPage: $request->input('per_page', 10)
             );
 

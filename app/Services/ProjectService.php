@@ -22,8 +22,10 @@ class ProjectService
             ->with(['client.user', 'freelancer.user', 'projectAttachments']);
 
         if (!empty($filters['search'])) {
-            $query->where('title', 'like', "%{$filters['search']}%")
-                ->orWhere('description', 'like', "%{$filters['search']}%");
+            $query->where(function($q) use ($filters) {
+                $q->where('title', 'like', "%{$filters['search']}%")
+                    ->orWhere('description', 'like', "%{$filters['search']}%");
+            });
         }
 
         if (!empty($filters['min_budget'])) {
@@ -34,18 +36,25 @@ class ProjectService
             $query->where('budget', '<=', $filters['max_budget']);
         }
 
-        return $query->latest()->paginate($perPage);
+        $sortBy = $filters['sort_by'] ?? 'created_at';
+        $sortOrder = $filters['sort_order'] ?? 'desc';
+
+        $allowedSorts = ['created_at', 'budget', 'title'];
+        if (!in_array($sortBy, $allowedSorts)) {
+            $sortBy = 'created_at';
+        }
+        
+        return $query->orderBy($sortBy, $sortOrder)->paginate($perPage);
     }
 
     /**
      * Get user's projects
      */
-    public function getUserProjects(int $userId, int $perPage = 10): LengthAwarePaginator
+    public function getUserProjects(int $clientId, int $perPage = 10): LengthAwarePaginator
     {
-        return Project::whereHas('client.user', function ($q) use ($userId) {
-            $q->where('users.id', $userId);
-        })
+        return Project::where('client_id', $clientId)
             ->with(['client.user', 'freelancer.user', 'projectAttachments'])
+            ->withCount('proposals')
             ->latest()
             ->paginate($perPage);
     }
