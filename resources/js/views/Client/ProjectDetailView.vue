@@ -58,14 +58,14 @@
         </div>
         
         <!-- Attachments -->
-        <div v-if="project.attachments && project.attachments.length > 0">
+        <div v-if="project.project_attachments && project.project_attachments.length > 0">
            <h3 class="text-lg font-semibold text-gray-900 mb-3">Attachments</h3>
            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
              <a 
-               v-for="att in project.attachments" 
+               v-for="att in project.project_attachments" 
                :key="att.id"
-               :href="getAttachmentUrl(att.file_path)"
-               target="_blank"
+               href="javascript:void(0)"
+               @click="previewAttachment(att)"
                class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
              >
                <div class="w-10 h-10 rounded bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
@@ -84,7 +84,7 @@
       <div v-if="project.freelancer" class="bg-blue-50 p-6 rounded-xl border border-blue-100 flex items-center gap-4">
         <img
           :src="project.freelancer.avatar_url || '/img/avatar.png'"
-          @error="$event.target.src = '/img/avatar.png'"
+          @error="handleAvatarError"
           class="w-16 h-16 rounded-full object-cover border border-white shadow-sm"
           alt="Avatar"
         />
@@ -150,6 +150,53 @@
       :current-user="currentUser"
       :receiver-name="project.freelancer?.name || 'Freelancer'"
     />
+
+    <!-- Attachment Preview Modal -->
+    <BaseModal
+      :is-open="isPreviewOpen"
+      :title="selectedAttachment?.title || 'Attachment Preview'"
+      @close="isPreviewOpen = false"
+      :width="800"
+    >
+      <div class="flex flex-col items-center">
+        <template v-if="selectedAttachment">
+          <img
+            v-if="isImage(selectedAttachment.file_path)"
+            :src="getAttachmentUrl(selectedAttachment.file_path)"
+            class="max-w-full h-auto rounded-lg shadow-sm"
+            alt="Preview"
+          />
+          <iframe
+            v-else-if="isPdf(selectedAttachment.file_path)"
+            :src="getAttachmentUrl(selectedAttachment.file_path)"
+            class="w-full h-[600px] rounded-lg border border-gray-200"
+          ></iframe>
+          <div v-else class="text-center py-8">
+            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <p class="text-gray-500 mb-4">No preview available for this file type.</p>
+            <a
+              :href="getAttachmentUrl(selectedAttachment.file_path)"
+              target="_blank"
+              class="text-blue-600 font-bold hover:underline"
+            >
+              Download File
+            </a>
+          </div>
+        </template>
+      </div>
+      <template #actions>
+        <BaseButton label="Close" variant="outline" @click="isPreviewOpen = false" />
+        <a
+          v-if="selectedAttachment"
+          :href="getAttachmentUrl(selectedAttachment.file_path)"
+          download
+          target="_blank"
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors"
+        >
+          Download
+        </a>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -164,6 +211,7 @@ import BaseAlert from '@/components/ui/BaseAlert.vue'
 import ProposalCard from '@/components/shared/ProposalCard.vue'
 import SubmissionCard from '@/components/shared/SubmissionCard.vue'
 import ChatBox from '@/components/shared/ChatBox.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
 
 import { projectService } from '@/services/projectService'
 import { proposalService } from '@/services/proposalService'
@@ -177,6 +225,8 @@ const projectId = Number(route.params.id)
 const project = ref<any>(null)
 const proposals = ref<any[]>([])
 const submissions = ref<any[]>([])
+const isPreviewOpen = ref(false)
+const selectedAttachment = ref<any>(null)
 
 const isLoading = ref(true)
 const isLoadingProposals = ref(false)
@@ -300,12 +350,51 @@ const formatStatus = (status: string) => {
   return status.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
+const handleAvatarError = (event: Event) => {
+  const target = event.target as HTMLImageElement
+  target.src = '/img/avatar.png'
+}
+
 const getAttachmentUrl = (path: string) => {
   const baseUrl = import.meta.env.VITE_API_BASE_URL.replace('/api/v1', '')
   return `${baseUrl}/storage/${path}`
+}
+
+const previewAttachment = (att: any) => {
+  selectedAttachment.value = att
+  isPreviewOpen.value = true
+}
+
+const isImage = (path: string) => {
+  return /\.(jpg|jpeg|png|webp|gif)$/i.test(path)
+}
+
+const isPdf = (path: string) => {
+  return /\.pdf$/i.test(path)
 }
 
 onMounted(() => {
   fetchProject()
 })
 </script>
+
+<style scoped>
+:deep(.prose ol) {
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.75rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+:deep(.prose ul) {
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.75rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+:deep(.prose li) {
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+}
+</style>
