@@ -50,6 +50,7 @@ Route::prefix('v1')->group(function () {
             Route::prefix('/{projectId}/proposals')->group(function () {
                 Route::get('/', [ProposalController::class, 'projectProposals'])->middleware('role:client');
                 Route::post('/', [ProposalController::class, 'store'])->middleware('role:freelancer');
+                Route::get('/check', [ProposalController::class, 'check'])->middleware('role:freelancer');
                 Route::patch('/{proposalId}/accept', [ProposalController::class, 'accept'])->middleware('role:client');
                 Route::patch('/{proposalId}/reject', [ProposalController::class, 'reject'])->middleware('role:client');
             });
@@ -82,7 +83,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/{id}', [PaymentController::class, 'detail']);
         });
 
-        // Saved Jobs (Freelancer only)
+        // Proposals (Freelancer only)
         Route::prefix('proposals')->group(function () {
             Route::get('/my', [ProposalController::class, 'myProposals'])->middleware('role:freelancer');
             Route::get('/{id}', [ProposalController::class, 'show']);

@@ -155,4 +155,28 @@ class ProposalController extends Controller
             return $this->errorResponse($e->getMessage(), 500);
         }
     }
+
+    /**
+     * Check if freelancer already submitted a proposal for a project
+     */
+    public function check(int $projectId): JsonResponse
+    {
+        try {
+            $user = auth()->user();
+            $freelancerProfile = $user->freelancerProfile;
+
+            if (!$freelancerProfile) {
+                return $this->errorResponse('Freelancer profile not found', 404);
+            }
+
+            $proposal = $this->proposalService->checkExistingProposal(
+                $projectId,
+                $freelancerProfile->id
+            );
+
+            return $this->successResponse('Success', $proposal, 200);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 500);
+        }
+    }
 }

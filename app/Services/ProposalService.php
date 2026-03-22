@@ -126,4 +126,14 @@ class ProposalService
     {
         return Proposal::with(['freelancer.user', 'project.client.user'])->find($proposalId);
     }
+
+    /**
+     * Check if freelancer already submitted a proposal for a project
+     */
+    public function checkExistingProposal(int $projectId, int $freelancerId): ?Proposal
+    {
+        return Proposal::where('project_id', $projectId)
+            ->where('freelancer_id', $freelancerId)
+            ->first();
+    }
 }
