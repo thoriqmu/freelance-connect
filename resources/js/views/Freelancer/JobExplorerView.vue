@@ -124,81 +124,13 @@
 
         <!-- Job Cards -->
         <div v-else class="space-y-4">
-          <div
+          <JobCard
             v-for="job in jobs"
             :key="job.id"
-            class="card-hover"
-          >
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
-                  <h3 class="text-xl font-bold">{{ job.title }}</h3>
-                  <BaseBadge :type="job.status === 'open' ? 'success' : 'warning'">
-                    {{ job.status === 'open' ? 'Open' : 'In Progress' }}
-                  </BaseBadge>
-                </div>
-              </div>
-              <button
-                @click="saveJob(job.id)"
-                :class="[
-                  'p-2 rounded-lg transition-colors',
-                  savedJobs.includes(job.id)
-                    ? 'bg-yellow-100 text-yellow-600'
-                    : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                ]"
-              >
-                <svg
-                  v-if="savedJobs.includes(job.id)"
-                  class="w-5 h-5"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-4-7 4V5z"></path>
-                </svg>
-                <svg
-                  v-else
-                  class="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-4-7 4V5z">
-                  </path>
-                </svg>
-              </button>
-            </div>
-
-            <div class="text-gray-600 mb-4 line-clamp-2 prose prose-sm max-w-none" v-html="job.description || 'No description provided'"></div>
-
-            <div v-if="job.required_skills" class="flex flex-wrap gap-2 mb-4">
-              <BaseBadge v-for="skill in (typeof job.required_skills === 'string' ? JSON.parse(job.required_skills) : job.required_skills)" :key="skill" type="info">
-                {{ skill }}
-              </BaseBadge>
-            </div>
-
-            <div class="flex items-center justify-between pt-4 border-t border-gray-200 gap-6 flex-wrap">
-              <div class="flex flex-col min-w-[100px]">
-                <p class="text-gray-500 text-sm">Budget</p>
-                <p class="text-xl font-bold text-blue-600">${{ job.budget }}</p>
-              </div>
-              <div class="flex flex-col min-w-[100px]">
-                <p class="text-gray-500 text-sm">Timeline</p>
-                <p class="text-lg font-semibold">{{ job.timeline }} weeks</p>
-              </div>
-              <div class="flex flex-col min-w-[120px]">
-                <p class="text-gray-500 text-sm">Posted</p>
-                <p class="text-lg font-semibold">
-                  {{ new Date(job.created_at).toLocaleDateString() }}
-                </p>
-              </div>
-              <div class="ml-auto">
-                <RouterLink :to="`/freelancer/jobs/${job.id}`">
-                  <BaseButton label="View & Bid" variant="primary" />
-                </RouterLink>
-              </div>
-            </div>
-          </div>
+            :job="job"
+            :is-saved="savedJobs.includes(job.id)"
+            @toggle-save="saveJob"
+          />
 
           <!-- Pagination -->
           <div v-if="jobs.length > 0" class="mt-8">
@@ -232,6 +164,8 @@ import { ref, reactive, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { projectService } from '@/services/projectService'
+import { savedJobsService } from '@/services/savedJobsService'
+import JobCard from '@/components/shared/JobCard.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
@@ -262,6 +196,7 @@ onMounted(() => {
     router.push('/client/dashboard')
   }
   loadProjects()
+  checkSavedJobs()
 })
 
 // Watch pagination changes
@@ -320,11 +255,30 @@ function clearFilters() {
   loadProjects()
 }
 
-function saveJob(jobId: number) {
-  if (savedJobs.value.includes(jobId)) {
-    savedJobs.value = savedJobs.value.filter(id => id !== jobId)
-  } else {
-    savedJobs.value.push(jobId)
+async function checkSavedJobs() {
+  try {
+    const res = await savedJobsService.getSavedJobs()
+    const saved = res.data?.data || []
+    savedJobs.value = saved.map((item: any) => item.project_id)
+  } catch (error) {
+    console.error('Failed to load saved jobs', error)
+  }
+}
+
+async function saveJob(jobId: number) {
+  try {
+    const isSaved = savedJobs.value.includes(jobId)
+
+    if (isSaved) {
+      savedJobs.value = savedJobs.value.filter(id => id !== jobId)
+      await savedJobsService.unsaveJob(jobId)
+    } else {
+      savedJobs.value.push(jobId)
+      await savedJobsService.saveJob(jobId)
+    }
+  } catch (error) {
+    console.error('Failed to toggle saved job', error)
+    await checkSavedJobs()
   }
 }
 </script>
