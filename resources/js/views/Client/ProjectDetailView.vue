@@ -8,10 +8,32 @@
         Back to My Projects
       </RouterLink>
       
-      <!-- Placeholder Action (e.g Edit) -->
-      <div v-if="project && project.status === 'open'" class="flex gap-2">
-         <BaseButton label="Edit Project" variant="outline" size="sm" @click="$router.push(`/client/projects/${project.id}/edit`)" />
-         <BaseButton label="Delete" variant="outline" size="sm" class="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300" @click="isDeleteConfirmOpen = true" />
+      <div v-if="project && (project.status === 'open' || project.status === 'archived')" class="relative">
+        <BaseButton label="Action" variant="outline" size="sm" @click="isActionDropdownOpen = !isActionDropdownOpen" class="font-semibold" />
+        
+        <div v-if="isActionDropdownOpen" class="fixed inset-0 z-40" @click="isActionDropdownOpen = false"></div>
+        
+        <div v-if="isActionDropdownOpen" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
+          <button @click="handleEditClick" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+            Edit Project
+          </button>
+          
+          <button v-if="project.status === 'open' && proposals.length === 0" @click="handleArchiveProject" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+            Archive Project
+          </button>
+          
+          <button v-if="project.status === 'archived'" @click="handleUnarchiveProject" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+             <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+            Open Project
+          </button>
+
+          <button @click="openDeleteConfirm" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+            <svg class="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            Delete Project
+          </button>
+        </div>
       </div>
     </div>
 
@@ -388,6 +410,7 @@ const isLoadingProposals = ref(true)
 const isLoadingSubmissions = ref(true)
 const error = ref('')
 
+const isActionDropdownOpen = ref(false)
 const isDeleteConfirmOpen = ref(false)
 const isAcceptConfirmOpen = ref(false)
 const isRejectConfirmOpen = ref(false)
@@ -486,10 +509,40 @@ const confirmRejectProposal = async () => {
   }
 }
 
+const handleEditClick = () => {
+    isActionDropdownOpen.value = false
+    router.push(`/client/projects/${project.value.id}/edit`)
+}
+
+const openDeleteConfirm = () => {
+    isActionDropdownOpen.value = false
+    isDeleteConfirmOpen.value = true
+}
+
+const handleArchiveProject = async () => {
+    isActionDropdownOpen.value = false
+    try {
+        await projectService.archiveProject(projectId)
+        await fetchProject()
+    } catch (err: any) {
+        alert(err.response?.data?.message || 'Failed to archive project')
+    }
+}
+
+const handleUnarchiveProject = async () => {
+    isActionDropdownOpen.value = false
+    try {
+        await projectService.unarchiveProject(projectId)
+        await fetchProject()
+    } catch (err: any) {
+        alert(err.response?.data?.message || 'Failed to unarchive project')
+    }
+}
+
 const handleDeleteProject = async () => {
   isDeleting.value = true
   try {
-    await apiClient.delete(`/projects/${projectId}`)
+    await projectService.deleteProject(projectId)
     isDeleteConfirmOpen.value = false
     router.push('/client/dashboard')
   } catch (err: any) {

@@ -38,4 +38,12 @@ export const projectService = {
   deleteProject(id: number) {
     return apiClient.delete<ApiResponse<null>>(`/projects/${id}`)
   },
+
+  archiveProject(id: number) {
+    return apiClient.patch<ApiResponse<Project>>(`/projects/${id}/archive`)
+  },
+
+  unarchiveProject(id: number) {
+    return apiClient.patch<ApiResponse<Project>>(`/projects/${id}/unarchive`)
+  },
 }

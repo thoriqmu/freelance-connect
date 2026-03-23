@@ -98,7 +98,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * Delete (archive) project
+     * Delete project
      */
     public function destroy(int $id): JsonResponse
     {
@@ -114,7 +114,53 @@ class ProjectController extends Controller
 
             $this->projectService->deleteProject($project);
 
-            return $this->successResponse('Project archived successfully', null, 200);
+            return $this->successResponse('Project deleted successfully', null, 200);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    /**
+     * Archive project
+     */
+    public function archive(int $id): JsonResponse
+    {
+        try {
+            $project = Project::findOrFail($id);
+
+            $user = auth()->user();
+            $clientProfile = $user->clientProfile;
+
+            if (!$clientProfile || $project->client_id !== $clientProfile->id) {
+                return $this->forbiddenResponse();
+            }
+
+            $project = $this->projectService->archiveProject($project);
+
+            return $this->successResponse('Project archived successfully', $project, 200);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    /**
+     * Unarchive project
+     */
+    public function unarchive(int $id): JsonResponse
+    {
+        try {
+            $project = Project::findOrFail($id);
+
+            $user = auth()->user();
+            $clientProfile = $user->clientProfile;
+
+            if (!$clientProfile || $project->client_id !== $clientProfile->id) {
+                return $this->forbiddenResponse();
+            }
+
+            $project = $this->projectService->unarchiveProject($project);
+
+            return $this->successResponse('Project unarchived successfully', $project, 200);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), $e->getCode() ?: 500);
         }

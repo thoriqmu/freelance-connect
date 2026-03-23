@@ -102,8 +102,8 @@ class ProjectService
     public function updateProject(Project $project, array $data): Project
     {
         try {
-            if ($project->status !== ProjectStatus::OPEN->value) {
-                throw new \Exception('Project can only be edited when status is OPEN.', 403);
+            if (!in_array($project->status, [ProjectStatus::OPEN->value, ProjectStatus::ARCHIVED->value])) {
+                throw new \Exception('Project can only be edited when status is OPEN or ARCHIVED.', 403);
             }
 
             $project->update($data);
@@ -118,22 +118,71 @@ class ProjectService
     }
 
     /**
-     * Delete (soft delete) project
+     * Delete (hard delete) project
      */
     public function deleteProject(Project $project): bool
     {
         try {
-            if ($project->status !== ProjectStatus::OPEN->value) {
-                throw new \Exception('Project can only be deleted when status is OPEN.', 403);
+            if (!in_array($project->status, [ProjectStatus::OPEN->value, ProjectStatus::ARCHIVED->value])) {
+                throw new \Exception('Project can only be deleted when status is OPEN or ARCHIVED.', 403);
             }
 
-            $project->update(['status' => ProjectStatus::ARCHIVED->value]);
+            if ($project->freelancer_id !== null) {
+                throw new \Exception('Cannot delete a project that already has a hired freelancer.', 403);
+            }
 
-            Log::info('Project deleted', ['project_id' => $project->id]);
+            $project->delete();
+
+            Log::info('Project deleted (hard)', ['project_id' => $project->id]);
 
             return true;
         } catch (\Exception $e) {
             Log::error('Delete project failed', ['error' => $e->getMessage()]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Archive project
+     */
+    public function archiveProject(Project $project): Project
+    {
+        try {
+            if ($project->status !== ProjectStatus::OPEN->value) {
+                throw new \Exception('Only OPEN projects can be archived.', 403);
+            }
+            if ($project->proposals()->count() > 0) {
+                throw new \Exception('Cannot archive a project that already has proposals received.', 403);
+            }
+
+            $project->update(['status' => ProjectStatus::ARCHIVED->value]);
+
+            Log::info('Project archived', ['project_id' => $project->id]);
+
+            return $project;
+        } catch (\Exception $e) {
+            Log::error('Archive project failed', ['error' => $e->getMessage()]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Unarchive project
+     */
+    public function unarchiveProject(Project $project): Project
+    {
+        try {
+            if ($project->status !== ProjectStatus::ARCHIVED->value) {
+                throw new \Exception('Only ARCHIVED projects can be unarchived.', 403);
+            }
+
+            $project->update(['status' => ProjectStatus::OPEN->value]);
+
+            Log::info('Project unarchived', ['project_id' => $project->id]);
+
+            return $project;
+        } catch (\Exception $e) {
+            Log::error('Unarchive project failed', ['error' => $e->getMessage()]);
             throw $e;
         }
     }

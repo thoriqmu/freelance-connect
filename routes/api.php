@@ -42,6 +42,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/{id}', [ProjectController::class, 'show']);
             Route::put('/{id}', [ProjectController::class, 'update'])->middleware('role:client');
             Route::delete('/{id}', [ProjectController::class, 'destroy'])->middleware('role:client');
+            Route::patch('/{id}/archive', [ProjectController::class, 'archive'])->middleware('role:client');
+            Route::patch('/{id}/unarchive', [ProjectController::class, 'unarchive'])->middleware('role:client');
 
             // Project Attachments
             Route::post('/{projectId}/attachments', [ProjectController::class, 'uploadAttachment'])->middleware('role:client');
