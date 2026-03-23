@@ -62,7 +62,8 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">Available Jobs</p>
-              <p class="text-3xl font-bold">20</p>
+              <div v-if="isStatsLoading" class="h-9 w-16 bg-gray-200 rounded animate-pulse mt-1"></div>
+              <p v-else class="text-3xl font-bold">{{ stats.available_jobs }}</p>
             </div>
             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,7 +79,8 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">My Active Bids</p>
-              <p class="text-3xl font-bold">0</p>
+              <div v-if="isStatsLoading" class="h-9 w-16 bg-gray-200 rounded animate-pulse mt-1"></div>
+              <p v-else class="text-3xl font-bold">{{ stats.active_bids }}</p>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,7 +96,8 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">Saved Jobs</p>
-              <p class="text-3xl font-bold">0</p>
+              <div v-if="isStatsLoading" class="h-9 w-16 bg-gray-200 rounded animate-pulse mt-1"></div>
+              <p v-else class="text-3xl font-bold">{{ stats.saved_jobs }}</p>
             </div>
             <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
               <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,6 +168,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { projectService } from '@/services/projectService'
 import { savedJobsService } from '@/services/savedJobsService'
+import apiClient from '@/services/apiClient'
 import JobCard from '@/components/shared/JobCard.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
@@ -177,6 +181,12 @@ const router = useRouter()
 const isLoading = ref(false)
 const savedJobs = ref<number[]>([])
 const jobs = ref<any[]>([])
+const isStatsLoading = ref(true)
+const stats = ref({
+  available_jobs: 0,
+  active_bids: 0,
+  saved_jobs: 0
+})
 
 const filters = reactive({
   search: '',
@@ -197,6 +207,7 @@ onMounted(() => {
   }
   loadProjects()
   checkSavedJobs()
+  fetchStats()
 })
 
 // Watch pagination changes
@@ -239,6 +250,18 @@ async function loadProjects() {
     console.error('Failed to load projects:', error)
   } finally {
     isLoading.value = false
+  }
+}
+
+async function fetchStats() {
+  isStatsLoading.value = true
+  try {
+    const res = await apiClient.get('/freelancer/stats')
+    stats.value = res.data.data
+  } catch (err) {
+    console.error('Failed to fetch stats', err)
+  } finally {
+    isStatsLoading.value = false
   }
 }
 

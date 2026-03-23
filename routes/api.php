@@ -10,6 +10,7 @@ use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SavedJobController;
 
@@ -82,6 +83,10 @@ Route::prefix('v1')->group(function () {
             Route::get('/', [PaymentController::class, 'myPayments'])->middleware('role:client');
             Route::get('/{id}', [PaymentController::class, 'detail']);
         });
+
+        // Dashboard Stats
+        Route::get('/client/stats', [DashboardController::class, 'clientStats'])->middleware('role:client');
+        Route::get('/freelancer/stats', [DashboardController::class, 'freelancerStats'])->middleware('role:freelancer');
 
         // Proposals (Freelancer only)
         Route::prefix('proposals')->group(function () {

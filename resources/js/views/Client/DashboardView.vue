@@ -15,7 +15,8 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">Active Projects</p>
-              <p class="text-3xl font-bold">{{ stats.activeProjects }}</p>
+              <div v-if="isStatsLoading" class="h-9 w-16 bg-gray-200 rounded animate-pulse mt-1"></div>
+              <p v-else class="text-3xl font-bold">{{ stats.active_projects }}</p>
             </div>
             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,7 +32,8 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">Total Spent</p>
-              <p class="text-3xl font-bold">${{ stats.totalSpent }}</p>
+              <div v-if="isStatsLoading" class="h-9 w-16 bg-gray-200 rounded animate-pulse mt-1"></div>
+              <p v-else class="text-3xl font-bold">${{ stats.total_spent }}</p>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,7 +49,8 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">Proposals Received</p>
-              <p class="text-3xl font-bold">{{ stats.proposalsReceived }}</p>
+              <div v-if="isStatsLoading" class="h-9 w-16 bg-gray-200 rounded animate-pulse mt-1"></div>
+              <p v-else class="text-3xl font-bold">{{ stats.proposals_received }}</p>
             </div>
             <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
               <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,7 +66,8 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">Completed</p>
-              <p class="text-3xl font-bold">{{ stats.completed }}</p>
+              <div v-if="isStatsLoading" class="h-9 w-16 bg-gray-200 rounded animate-pulse mt-1"></div>
+              <p v-else class="text-3xl font-bold">{{ stats.completed_projects }}</p>
             </div>
             <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
               <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,6 +226,7 @@ import { ref, onMounted, reactive } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { projectService } from '@/services/projectService'
+import apiClient from '@/services/apiClient'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
 
@@ -229,11 +234,12 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 const isLoading = ref(false)
+const isStatsLoading = ref(true)
 const stats = reactive({
-  activeProjects: 0,
-  totalSpent: 0,
-  proposalsReceived: 0,
-  completed: 0,
+  active_projects: 0,
+  total_spent: 0,
+  proposals_received: 0,
+  completed_projects: 0,
 })
 const projects = ref<any[]>([])
 
@@ -262,19 +268,18 @@ async function loadProjects() {
 }
 
 async function calculateStats() {
+  isStatsLoading.value = true
   try {
-    const response = await projectService.getMyProjects({
-      per_page: 100,
-    })
-
-    const allProjects = response.data.data || []
-
-    stats.activeProjects = allProjects.filter((p: any) => p.status === 'open' || p.status === 'in_progress').length
-    stats.completed = allProjects.filter((p: any) => p.status === 'completed').length
-    stats.totalSpent = allProjects.reduce((sum: number, p: any) => sum + (parseFloat(p.budget) || 0), 0)
-    stats.proposalsReceived = allProjects.reduce((sum: number, p: any) => sum + (p.proposals_count || 0), 0)
+    const res = await apiClient.get('/client/stats')
+    const data = res.data.data
+    stats.active_projects = data.active_projects
+    stats.total_spent = data.total_spent
+    stats.proposals_received = data.proposals_received
+    stats.completed_projects = data.completed_projects
   } catch (error) {
-    console.error('Failed to calculate stats:', error)
+    console.error('Failed to fetch stats:', error)
+  } finally {
+    isStatsLoading.value = false
   }
 }
 
