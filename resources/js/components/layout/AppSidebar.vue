@@ -42,6 +42,12 @@
           @click="emitClose"
         />
         <NavLink
+          to="/freelancer/my-proposals"
+          icon="briefcase"
+          label="My Proposals"
+          @click="emitClose"
+        />
+        <NavLink
           to="/freelancer/saved-jobs"
           icon="bookmark"
           label="Saved Jobs"
@@ -51,12 +57,6 @@
           to="/freelancer/my-jobs"
           icon="briefcase"
           label="My Jobs"
-          @click="emitClose"
-        />
-        <NavLink
-          to="/freelancer/my-proposals"
-          icon="briefcase"
-          label="My Proposals"
           @click="emitClose"
         />
         <NavLink

@@ -101,7 +101,7 @@
           v-if="pagination.lastPage > 1"
           :current-page="pagination.currentPage"
           :last-page="pagination.lastPage"
-          @page-change="handlePageChange"
+          @update:current-page="handlePageChange"
         />
       </div>
     </div>
@@ -182,6 +182,7 @@ const resetFilters = () => {
 
 const handlePageChange = (page: number) => {
   filters.page = page
+  pagination.currentPage = page
   fetchProjects()
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }

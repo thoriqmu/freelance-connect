@@ -26,13 +26,21 @@
         </div>
       </div>
       
-      <div class="flex gap-2 w-full md:w-auto">
-        <template v-if="proposal.status === 'PENDING'">
+      <div class="flex gap-3 w-full md:w-auto items-center">
+        <BaseButton 
+          v-if="proposal.freelancer_id" 
+          label="View Profile" 
+          variant="outline" 
+          size="sm" 
+          class="text-blue-600 border-gray-200"
+          @click="$router.push(`/client/freelancers/${proposal.freelancer_id}`)" 
+        />
+        <template v-if="proposal.status === 'pending'">
           <BaseButton label="Reject" variant="outline" size="sm" class="flex-1 md:flex-none text-red-600 hover:bg-red-50 border-gray-300" @click="$emit('reject', proposal.id)" :disabled="isProcessing" />
           <BaseButton label="Accept" variant="primary" size="sm" class="flex-1 md:flex-none bg-green-600 hover:bg-green-700 border-none" @click="$emit('accept', proposal.id)" :disabled="isProcessing" />
         </template>
         <template v-else>
-          <BaseBadge :type="proposal.status === 'ACCEPTED' ? 'success' : 'danger'">
+          <BaseBadge :type="proposal.status === 'accepted' ? 'success' : 'danger'">
             {{ formatStatus(proposal.status) }}
           </BaseBadge>
         </template>

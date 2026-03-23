@@ -111,10 +111,10 @@ class ProposalController extends Controller
     /**
      * Accept proposal (client only)
      */
-    public function accept(int $id): JsonResponse
+    public function accept(int $projectId, int $proposalId): JsonResponse
     {
         try {
-            $proposal = Proposal::findOrFail($id);
+            $proposal = Proposal::findOrFail($proposalId);
             $project = $proposal->project;
 
             $user = auth()->user();
@@ -135,10 +135,10 @@ class ProposalController extends Controller
     /**
      * Reject proposal (client only)
      */
-    public function reject(int $id): JsonResponse
+    public function reject(int $projectId, int $proposalId): JsonResponse
     {
         try {
-            $proposal = Proposal::findOrFail($id);
+            $proposal = Proposal::findOrFail($proposalId);
             $project = $proposal->project;
 
             $user = auth()->user();

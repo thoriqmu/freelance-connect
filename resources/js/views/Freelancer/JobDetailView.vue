@@ -95,6 +95,14 @@
                 </div>
             </div>
 
+            <BaseAlert 
+              v-if="alertMessage" 
+              :type="alertType" 
+              :message="alertMessage" 
+              class="mb-6" 
+              @close="alertMessage = ''"
+            />
+
             <!-- Skeleton saat mengecek proposal -->
             <div v-else-if="isCheckingProposal" class="animate-pulse space-y-4">
                 <div class="h-6 bg-gray-200 rounded w-1/3"></div>
@@ -277,6 +285,9 @@ const proposalForm = reactive({
   message: ''
 })
 
+const alertMessage = ref('')
+const alertType = ref<'success' | 'error' | 'info' | 'warning'>('info')
+
 const fetchJobDetail = async () => {
   isLoading.value = true
   try {
@@ -317,13 +328,21 @@ const submitProposal = async () => {
   if (!proposalForm.bid_price || !proposalForm.estimated_time || !proposalForm.message) return
   
   isSubmittingProposal.value = true
+  alertMessage.value = ''
   try {
     const res = await apiClient.post(`/projects/${projectId}/proposals`, proposalForm)
     existingProposal.value = proposalForm // optimistic local update or server response
-    alert('Proposal submitted successfully!')
-  } catch (err) {
+    alertType.value = 'success'
+    alertMessage.value = 'Proposal submitted successfully!'
+    
+    // Auto hide alert after 3s
+    setTimeout(() => {
+      alertMessage.value = ''
+    }, 3000)
+  } catch (err: any) {
     console.error(err)
-    alert('Failed to submit proposal.')
+    alertType.value = 'error'
+    alertMessage.value = err.response?.data?.message || 'Failed to submit proposal.'
   } finally {
     isSubmittingProposal.value = false
   }

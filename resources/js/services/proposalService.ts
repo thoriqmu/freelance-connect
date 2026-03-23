@@ -11,5 +11,9 @@ export const proposalService = {
 
   rejectProposal(projectId: number, proposalId: number) {
     return apiClient.patch(`/projects/${projectId}/proposals/${proposalId}/reject`)
+  },
+
+  getMyProposals(params?: Record<string, any>) {
+    return apiClient.get('/proposals/my', { params })
   }
 }

@@ -15,6 +15,7 @@ const ClientProjectDetailView = () => import('@/views/Client/ProjectDetailView.v
 const FreelancerJobExplorerView = () => import('@/views/Freelancer/JobExplorerView.vue')
 const FreelancerSavedJobsView = () => import('@/views/Freelancer/SavedJobsView.vue')
 const FreelancerJobDetailView = () => import('@/views/Freelancer/JobDetailView.vue')
+const FreelancerMyProposalsView = () => import('@/views/Freelancer/MyProposalsView.vue')
 
 const routes: RouteRecordRaw[] = [
   // Public routes
@@ -82,6 +83,12 @@ const routes: RouteRecordRaw[] = [
     path: '/freelancer/saved-jobs',
     name: 'freelancer-saved-jobs',
     component: FreelancerSavedJobsView,
+    meta: { requiresAuth: true, role: 'freelancer' },
+  },
+  {
+    path: '/freelancer/my-proposals',
+    name: 'freelancer-proposals',
+    component: FreelancerMyProposalsView,
     meta: { requiresAuth: true, role: 'freelancer' },
   },
 

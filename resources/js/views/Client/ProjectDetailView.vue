@@ -11,6 +11,7 @@
       <!-- Placeholder Action (e.g Edit) -->
       <div v-if="project && project.status === 'open'" class="flex gap-2">
          <BaseButton label="Edit Project" variant="outline" size="sm" @click="$router.push(`/client/projects/${project.id}/edit`)" />
+         <BaseButton label="Delete" variant="outline" size="sm" class="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300" @click="isDeleteConfirmOpen = true" />
       </div>
     </div>
 
@@ -197,13 +198,59 @@
         </a>
       </template>
     </BaseModal>
+
+    <!-- Delete Confirmation Modal -->
+    <BaseModal
+      :is-open="isDeleteConfirmOpen"
+      title="Delete Project"
+      @close="isDeleteConfirmOpen = false"
+    >
+      <div class="py-4">
+        <p class="text-gray-700">Are you sure you want to delete this project? All proposals and submitted files will be permanently removed. This action cannot be undone.</p>
+      </div>
+      <template #actions>
+        <BaseButton label="Cancel" variant="outline" @click="isDeleteConfirmOpen = false" :disabled="isDeleting" />
+        <BaseButton label="Delete Project" class="bg-red-600 hover:bg-red-700 text-white border-none" @click="handleDeleteProject" :loading="isDeleting" />
+      </template>
+    </BaseModal>
+
+    <!-- Accept Proposal Confirmation Modal -->
+    <BaseModal
+      :is-open="isAcceptConfirmOpen"
+      title="Accept Proposal"
+      @close="isAcceptConfirmOpen = false"
+    >
+      <div class="py-4">
+        <p class="text-gray-700">Are you sure you want to accept this proposal and hire this freelancer? This will move the project to "In Progress" status.</p>
+      </div>
+      <template #actions>
+        <BaseButton label="Cancel" variant="outline" @click="isAcceptConfirmOpen = false" :disabled="isProcessingProposal !== null" />
+        <BaseButton label="Accept & Hire" class="bg-green-600 hover:bg-green-700 text-white border-none" @click="confirmAcceptProposal" :loading="isProcessingProposal !== null" />
+      </template>
+    </BaseModal>
+
+    <!-- Reject Proposal Confirmation Modal -->
+    <BaseModal
+      :is-open="isRejectConfirmOpen"
+      title="Reject Proposal"
+      @close="isRejectConfirmOpen = false"
+    >
+      <div class="py-4">
+        <p class="text-gray-700">Are you sure you want to reject this proposal? This action cannot be undone.</p>
+      </div>
+      <template #actions>
+        <BaseButton label="Cancel" variant="outline" @click="isRejectConfirmOpen = false" :disabled="isProcessingProposal !== null" />
+        <BaseButton label="Reject Proposal" class="bg-red-600 hover:bg-red-700 text-white border-none" @click="confirmRejectProposal" :loading="isProcessingProposal !== null" />
+      </template>
+    </BaseModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import apiClient from '@/services/apiClient'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
@@ -233,9 +280,15 @@ const isLoadingProposals = ref(false)
 const isLoadingSubmissions = ref(false)
 const error = ref('')
 
+const isDeleteConfirmOpen = ref(false)
+const isAcceptConfirmOpen = ref(false)
+const isRejectConfirmOpen = ref(false)
+const selectedProposalId = ref<number | null>(null)
+const isDeleting = ref(false)
 const isProcessingProposal = ref<number | null>(null)
 
 const currentUser = computed(() => authStore.user)
+const router = useRouter()
 
 const fetchProject = async () => {
   isLoading.value = true
@@ -281,34 +334,61 @@ const fetchSubmissions = async () => {
   }
 }
 
-const handleAcceptProposal = async (proposalId: number) => {
-  if (!confirm('Are you sure you want to accept this proposal and hire the freelancer?')) return
+const handleAcceptProposal = (proposalId: number) => {
+  selectedProposalId.value = proposalId
+  isAcceptConfirmOpen.value = true
+}
+
+const confirmAcceptProposal = async () => {
+  if (!selectedProposalId.value) return
   
-  isProcessingProposal.value = proposalId
+  isProcessingProposal.value = selectedProposalId.value
   try {
-    await proposalService.acceptProposal(projectId, proposalId)
-    // Refresh project details to see assigned freelancer
+    await proposalService.acceptProposal(projectId, selectedProposalId.value)
+    isAcceptConfirmOpen.value = false
     await fetchProject()
   } catch (err) {
     alert('Failed to accept proposal')
     console.error(err)
   } finally {
     isProcessingProposal.value = null
+    selectedProposalId.value = null
   }
 }
 
-const handleRejectProposal = async (proposalId: number) => {
-  if (!confirm('Are you sure you want to reject this proposal?')) return
+const handleRejectProposal = (proposalId: number) => {
+  selectedProposalId.value = proposalId
+  isRejectConfirmOpen.value = true
+}
+
+const confirmRejectProposal = async () => {
+  if (!selectedProposalId.value) return
   
-  isProcessingProposal.value = proposalId
+  isProcessingProposal.value = selectedProposalId.value
   try {
-    await proposalService.rejectProposal(projectId, proposalId)
+    await proposalService.rejectProposal(projectId, selectedProposalId.value)
+    isRejectConfirmOpen.value = false
     await fetchProposals() // Refresh list
   } catch (err) {
     alert('Failed to reject proposal')
     console.error(err)
   } finally {
     isProcessingProposal.value = null
+    selectedProposalId.value = null
+  }
+}
+
+const handleDeleteProject = async () => {
+  isDeleting.value = true
+  try {
+    await apiClient.delete(`/projects/${projectId}`)
+    isDeleteConfirmOpen.value = false
+    router.push('/client/dashboard')
+  } catch (err: any) {
+    alert(err.response?.data?.message || 'Failed to delete project')
+    console.error(err)
+  } finally {
+    isDeleting.value = false
   }
 }
 

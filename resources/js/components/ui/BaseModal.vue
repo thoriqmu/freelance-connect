@@ -1,40 +1,42 @@
 <template>
   <Teleport to="body">
     <Transition name="modal-fade">
-      <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center">
+      <div v-if="isOpen" class="fixed inset-0 z-50">
         <!-- Backdrop -->
         <div
-          class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+          class="absolute inset-0 bg-black/50"
           @click="handleBackdropClick"
         ></div>
 
         <!-- Modal -->
-        <div
-          class="relative bg-white rounded-lg shadow-xl w-full mx-4 animate-slide-in"
-          :style="{ maxWidth: `${width}px` }"
-        >
-          <!-- Header -->
-          <div class="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 v-if="title" class="text-xl font-bold">{{ title }}</h2>
-            <button
-              v-if="showCloseButton"
-              @click="$emit('close')"
-              class="p-1 hover:bg-gray-100 rounded transition-colors"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-            </button>
-          </div>
-
-          <!-- Content -->
-          <div class="p-6">
-            <slot></slot>
-          </div>
-
-          <!-- Footer -->
-          <div v-if="$slots.actions" class="flex gap-3 justify-end p-6 border-t border-gray-200">
-            <slot name="actions"></slot>
+        <div class="relative z-10 flex items-center justify-center min-h-full">
+          <div
+            class="bg-white rounded-lg shadow-xl w-full mx-4 animate-slide-in"
+            :style="{ maxWidth: `${width}px` }"
+          >
+            <!-- Header -->
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 v-if="title" class="text-xl font-bold">{{ title }}</h2>
+              <button
+                v-if="showCloseButton"
+                @click="$emit('close')"
+                class="p-1 hover:bg-gray-100 rounded transition-colors"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+  
+            <!-- Content -->
+            <div class="p-6">
+              <slot></slot>
+            </div>
+  
+            <!-- Footer -->
+            <div v-if="$slots.actions" class="flex gap-3 justify-end p-6 border-t border-gray-200">
+              <slot name="actions"></slot>
+            </div>
           </div>
         </div>
       </div>
