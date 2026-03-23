@@ -42,10 +42,10 @@
                 {{ formatStatus(proposal.status) }}
               </BaseBadge>
             </div>
+
+            <ExpandableHTML :content="proposal.message" />
             
-            <p class="text-gray-600 text-sm line-clamp-2 mb-3">{{ proposal.message }}</p>
-            
-            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 mt-3">
                <span class="flex items-center gap-1 font-medium text-gray-900">
                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 12v-2m9-4a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                  Bid: <span class="text-blue-600">${{ proposal.bid_price }}</span>
@@ -99,6 +99,7 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
 import BasePagination from '@/components/ui/BasePagination.vue'
+import ExpandableHTML from '@/components/ui/ExpandableHTML.vue'
 
 const isLoading = ref(true)
 const error = ref('')

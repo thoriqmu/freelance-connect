@@ -2,7 +2,7 @@
   <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
     <div class="flex items-start gap-4 flex-1">
       <img
-        :src="proposal.freelancer?.user?.avatar_url || '/img/avatar.png'"
+        :src="proposal.freelancer?.user?.avatar || '/img/avatar.png'"
         @error="($event.target as HTMLImageElement).src = '/img/avatar.png'"
         class="w-12 h-12 rounded-full object-cover border border-gray-100"
         alt="Avatar"
@@ -10,7 +10,7 @@
 
       <div class="space-y-1">
         <h4 class="font-bold text-gray-900 text-lg">{{ proposal.freelancer?.user?.name || 'Unknown Freelancer' }}</h4>
-        <div class="text-sm text-gray-600 line-clamp-2">{{ proposal.message }}</div>
+        <ExpandableHTML :content="proposal.message" />
       </div>
     </div>
     
@@ -52,6 +52,7 @@
 <script setup lang="ts">
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
+import ExpandableHTML from '@/components/ui/ExpandableHTML.vue'
 
 defineProps<{
   proposal: any

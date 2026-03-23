@@ -27,8 +27,77 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="space-y-6">
-      <div class="animate-pulse bg-white p-6 rounded-xl border border-gray-200 h-48"></div>
+    <div v-if="isLoading" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white p-6 md:p-8 rounded-xl border border-gray-200 shadow-sm space-y-6 animate-pulse">
+          <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+            <div class="space-y-3 flex-1">
+              <div class="h-9 bg-gray-200 rounded w-3/4"></div>
+              <div class="flex items-center gap-3">
+                <div class="h-4 bg-gray-200 rounded w-32"></div>
+                <div class="h-6 bg-gray-200 rounded-full w-16"></div>
+              </div>
+            </div>
+            <div class="bg-blue-50 p-4 rounded-lg shrink-0 space-y-2">
+              <div class="h-3 bg-gray-200 rounded w-24"></div>
+              <div class="h-8 bg-gray-200 rounded w-20"></div>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="h-4 bg-gray-200 rounded w-full"></div>
+            <div class="h-4 bg-gray-200 rounded w-full"></div>
+            <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+            <div class="h-4 bg-gray-200 rounded w-4/6"></div>
+            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+          </div>
+        </div>
+        <div class="bg-gray-50 p-6 md:p-8 rounded-xl border border-gray-200 animate-pulse space-y-5">
+          <div class="h-7 bg-gray-200 rounded w-48"></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="space-y-2">
+              <div class="h-4 bg-gray-200 rounded w-28"></div>
+              <div class="h-10 bg-gray-200 rounded"></div>
+            </div>
+            <div class="space-y-2">
+              <div class="h-4 bg-gray-200 rounded w-40"></div>
+              <div class="h-10 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="h-4 bg-gray-200 rounded w-24"></div>
+            <div class="h-40 bg-gray-200 rounded-lg"></div>
+          </div>
+          <div class="h-10 bg-gray-200 rounded w-36"></div>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm animate-pulse space-y-4">
+          <div class="h-5 bg-gray-200 rounded w-32 mb-4 pb-2"></div>
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-gray-200 shrink-0"></div>
+            <div class="space-y-2 flex-1">
+              <div class="h-4 bg-gray-200 rounded w-32"></div>
+              <div class="h-3 bg-gray-200 rounded w-24"></div>
+              <div class="h-3 bg-gray-200 rounded w-20"></div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 animate-pulse space-y-5">
+          <div class="space-y-2">
+            <div class="h-3 bg-gray-200 rounded w-24"></div>
+            <div class="h-5 bg-gray-200 rounded w-20"></div>
+          </div>
+          <div class="space-y-2">
+            <div class="h-3 bg-gray-200 rounded w-28"></div>
+            <div class="flex flex-wrap gap-2 mt-2">
+              <div class="h-6 bg-gray-200 rounded-full w-16"></div>
+              <div class="h-6 bg-gray-200 rounded-full w-20"></div>
+              <div class="h-6 bg-gray-200 rounded-full w-14"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Error State -->
@@ -151,7 +220,14 @@
 
                 <div class="flex flex-col gap-1">
                   <label class="text-sm font-medium text-gray-700">Cover Letter</label>
-                  <textarea v-model="proposalForm.message" required rows="5" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 w-full" placeholder="Tell the client why you're a good fit for this project..."></textarea>
+                  <div class="border border-gray-300 rounded-lg overflow-hidden bg-white min-h-[12rem] flex flex-col">
+                    <QuillEditor
+                      v-model:content="proposalForm.message"
+                      contentType="html"
+                      theme="snow"
+                      class="flex-1"
+                    />
+                  </div>
                 </div>
                 
                 <div class="pt-4">
@@ -176,7 +252,7 @@
           <h3 class="font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100">About the Client</h3>
           <div class="flex items-center gap-3 mb-4">
             <img
-              :src="project.client?.user?.avatar_url || '/img/avatar.png'"
+              :src="project.client?.user?.avatar || '/img/avatar.png'"
               @error="handleAvatarError"
               class="w-12 h-12 rounded-full object-cover bg-gray-100"
               alt="Client Avatar"
@@ -265,6 +341,8 @@ import BaseAlert from '@/components/ui/BaseAlert.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
 const route = useRoute()
 const projectId = Number(route.params.id)
@@ -325,7 +403,12 @@ const toggleSave = async () => {
 }
 
 const submitProposal = async () => {
-  if (!proposalForm.bid_price || !proposalForm.estimated_time || !proposalForm.message) return
+  if (!proposalForm.bid_price || !proposalForm.estimated_time || !proposalForm.message || proposalForm.message === '<p><br></p>') {
+    alertType.value = 'error'
+    alertMessage.value = 'Please fill all required fields including a valid cover letter.'
+    setTimeout(() => { alertMessage.value = '' }, 3000)
+    return
+  }
   
   isSubmittingProposal.value = true
   alertMessage.value = ''
@@ -434,5 +517,12 @@ onMounted(() => {
 :deep(.prose li) {
   margin-top: 0.25rem !important;
   margin-bottom: 0.25rem !important;
+}
+<style>
+/* Adjust vue-quill editor basic layout */
+.ql-editor {
+  min-height: 12rem;
+  font-family: inherit;
+  font-size: 0.875rem; 
 }
 </style>

@@ -131,7 +131,7 @@ const showMobileMenu = ref(false)
 defineEmits(['toggle-sidebar'])
 
 const avatarUrl = computed(() => {
-  return authStore.user?.avatar_url || '/img/avatar.png'
+  return authStore.user?.avatar || '/img/avatar.png'
 })
 
 function onAvatarError(e: Event) {

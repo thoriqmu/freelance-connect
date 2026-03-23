@@ -69,7 +69,7 @@
           </BaseBadge>
         </div>
         
-        <div class="text-gray-600 text-sm line-clamp-2 md:line-clamp-3 prose prose-sm max-w-none" v-html="project.description"></div>
+        <ExpandableHTML :content="project.description" />
         
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-100 text-sm">
           <div class="flex items-center justify-between lg:block bg-gray-50 lg:bg-transparent p-3 lg:p-0 rounded-lg">
@@ -130,6 +130,7 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
 import BasePagination from '@/components/ui/BasePagination.vue'
+import ExpandableHTML from '@/components/ui/ExpandableHTML.vue'
 import { projectService } from '@/services/projectService'
 
 const router = useRouter()

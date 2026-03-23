@@ -17,131 +17,239 @@
 
     <!-- Loading State -->
     <div v-if="isLoading" class="space-y-6">
-      <div class="animate-pulse bg-white p-6 rounded-xl border border-gray-200 h-48"></div>
-      <div class="animate-pulse bg-white p-6 rounded-xl border border-gray-200 h-64"></div>
+      <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6 animate-pulse">
+        <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+          <div class="space-y-3 flex-1">
+            <div class="h-8 bg-gray-200 rounded w-2/3"></div>
+            <div class="flex items-center gap-3">
+              <div class="h-4 bg-gray-200 rounded w-32"></div>
+              <div class="h-6 bg-gray-200 rounded-full w-20"></div>
+            </div>
+          </div>
+          <div class="flex gap-4 p-4 bg-gray-50 rounded-lg shrink-0">
+            <div class="space-y-2">
+              <div class="h-3 bg-gray-200 rounded w-12"></div>
+              <div class="h-7 bg-gray-200 rounded w-20"></div>
+            </div>
+            <div class="w-px bg-gray-200"></div>
+            <div class="space-y-2">
+              <div class="h-3 bg-gray-200 rounded w-16"></div>
+              <div class="h-7 bg-gray-200 rounded w-16"></div>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <div class="h-5 bg-gray-200 rounded w-40 mb-3"></div>
+          <div class="h-4 bg-gray-200 rounded w-full"></div>
+          <div class="h-4 bg-gray-200 rounded w-full"></div>
+          <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+          <div class="h-4 bg-gray-200 rounded w-4/6"></div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-200 pb-2">
+          <div class="h-7 bg-gray-200 rounded w-48 animate-pulse"></div>
+          <div class="h-7 bg-gray-200 rounded-full w-10 animate-pulse"></div>
+        </div>
+        <div v-for="i in 3" :key="i" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm animate-pulse space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-gray-200 shrink-0"></div>
+            <div class="space-y-2 flex-1">
+              <div class="h-5 bg-gray-200 rounded w-36"></div>
+              <div class="h-3 bg-gray-200 rounded w-24"></div>
+            </div>
+            <div class="h-6 bg-gray-200 rounded-full w-20"></div>
+          </div>
+          <div class="space-y-2">
+            <div class="h-4 bg-gray-200 rounded w-full"></div>
+            <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+            <div class="h-5 bg-gray-200 rounded w-24"></div>
+            <div class="flex gap-2">
+              <div class="h-9 bg-gray-200 rounded-lg w-24"></div>
+              <div class="h-9 bg-gray-200 rounded-lg w-24"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Error State -->
     <BaseAlert v-else-if="error" type="error" :message="error" />
 
     <template v-else-if="project">
-      
-      <!-- SECTION 1: Project Details -->
-      <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
-        <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ project.title }}</h1>
-            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-              <span class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                Posted {{ new Date(project.created_at).toLocaleDateString() }}
-              </span>
-              <BaseBadge :type="getStatusBadge(project.status)">{{ formatStatus(project.status) }}</BaseBadge>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- LEFT COLUMN -->
+        <div :class="project.freelancer_id ? 'lg:col-span-2' : 'lg:col-span-3'" class="space-y-6">
+
+          <!-- SECTION 1: Project Details -->
+          <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+              <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ project.title }}</h1>
+                <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                  <span class="flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Posted {{ new Date(project.created_at).toLocaleDateString() }}
+                  </span>
+                  <BaseBadge :type="getStatusBadge(project.status)">{{ formatStatus(project.status) }}</BaseBadge>
+                </div>
+              </div>
+              <div class="flex gap-4 p-4 bg-gray-50 rounded-lg shrink-0">
+                <div>
+                  <p class="text-gray-500 text-xs uppercase tracking-wider font-semibold">Budget</p>
+                  <p class="text-xl font-bold text-blue-600">${{ project.budget }}</p>
+                </div>
+                <div class="w-px bg-gray-200"></div>
+                <div>
+                  <p class="text-gray-500 text-xs uppercase tracking-wider font-semibold">Timeline</p>
+                  <p class="text-xl font-bold text-gray-900">{{ project.timeline ? project.timeline + ' weeks' : '-' }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-3">Project Description</h3>
+              <div class="text-gray-700 prose prose-sm max-w-none" v-html="project.description"></div>
+            </div>
+
+            <!-- Attachments -->
+            <div v-if="project.project_attachments && project.project_attachments.length > 0">
+              <h3 class="text-lg font-semibold text-gray-900 mb-3">Attachments</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <a v-for="att in project.project_attachments" :key="att.id"
+                  href="javascript:void(0)" @click="previewAttachment(att)"
+                  class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                  <div class="w-10 h-10 rounded bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate" :title="att.title">{{ att.title }}</p>
+                    <p class="text-xs text-gray-500 truncate">Click to view</p>
+                  </div>
+                </a>
+              </div>
             </div>
           </div>
-          
-          <div class="flex gap-4 p-4 bg-gray-50 rounded-lg shrink-0">
-             <div>
-               <p class="text-gray-500 text-xs uppercase tracking-wider font-semibold">Budget</p>
-               <p class="text-xl font-bold text-blue-600">${{ project.budget }}</p>
-             </div>
-             <div class="w-px bg-gray-200"></div>
-             <div>
-               <p class="text-gray-500 text-xs uppercase tracking-wider font-semibold">Timeline</p>
-               <p class="text-xl font-bold text-gray-900">{{ project.timeline ? project.timeline + ' weeks' : '-' }}</p>
-             </div>
+
+          <!-- SECTION 2: Submissions -->
+          <div v-if="project.freelancer_id" class="space-y-4">
+            <h2 class="text-2xl font-bold text-gray-900 border-b border-gray-200 pb-2">Submissions</h2>
+
+            <div v-if="isLoadingSubmissions" class="space-y-4">
+              <div v-for="i in 2" :key="i" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm animate-pulse space-y-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-gray-200 shrink-0"></div>
+                  <div class="space-y-2 flex-1">
+                    <div class="h-4 bg-gray-200 rounded w-36"></div>
+                    <div class="h-3 bg-gray-200 rounded w-24"></div>
+                  </div>
+                  <div class="h-6 bg-gray-200 rounded-full w-20"></div>
+                </div>
+                <div class="space-y-2">
+                  <div class="h-4 bg-gray-200 rounded w-full"></div>
+                  <div class="h-4 bg-gray-200 rounded w-4/5"></div>
+                </div>
+                <div class="flex gap-2 pt-2 border-t border-gray-100">
+                  <div class="h-9 bg-gray-200 rounded-lg w-28"></div>
+                  <div class="h-9 bg-gray-200 rounded-lg w-28"></div>
+                </div>
+              </div>
+            </div>
+
+            <div v-else-if="submissions.length > 0" class="space-y-4">
+              <SubmissionCard v-for="sub in submissions" :key="sub.id" :submission="sub"
+                @approve="handleApproveSubmission" @request-revision="handleRequestRevision" />
+            </div>
+            <div v-else class="text-center py-10 bg-white rounded-xl border border-gray-100">
+              <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+              <p class="text-gray-500">No submissions from the freelancer yet.</p>
+            </div>
           </div>
+
+          <!-- SECTION 3: Proposals -->
+          <div v-else class="space-y-4">
+            <div class="flex items-center justify-between border-b border-gray-200 pb-2">
+              <h2 class="text-2xl font-bold text-gray-900">Proposals Received</h2>
+              <span class="bg-blue-100 text-blue-700 font-bold px-3 py-1 rounded-full text-sm">{{ proposals.length }}</span>
+            </div>
+
+            <div v-if="isLoadingProposals" class="space-y-4">
+              <div v-for="i in 3" :key="i" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm animate-pulse space-y-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-full bg-gray-200 shrink-0"></div>
+                  <div class="space-y-2 flex-1">
+                    <div class="h-5 bg-gray-200 rounded w-36"></div>
+                    <div class="h-3 bg-gray-200 rounded w-24"></div>
+                  </div>
+                  <div class="h-6 bg-gray-200 rounded-full w-20"></div>
+                </div>
+                <div class="space-y-2">
+                  <div class="h-4 bg-gray-200 rounded w-full"></div>
+                  <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+                  <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                </div>
+                <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+                  <div class="h-5 bg-gray-200 rounded w-24"></div>
+                  <div class="flex gap-2">
+                    <div class="h-9 bg-gray-200 rounded-lg w-24"></div>
+                    <div class="h-9 bg-gray-200 rounded-lg w-24"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-else-if="proposals.length > 0" class="space-y-4">
+              <ProposalCard v-for="prop in proposals" :key="prop.id" :proposal="prop"
+                :isProcessing="isProcessingProposal === prop.id"
+                @accept="handleAcceptProposal" @reject="handleRejectProposal" />
+            </div>
+            <div v-else class="text-center py-12 bg-white rounded-xl border border-gray-100">
+              <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+              </div>
+              <h3 class="text-lg font-medium text-gray-900">No Proposals Yet</h3>
+              <p class="text-gray-500 mb-4">You haven't received any proposals for this project.</p>
+            </div>
+          </div>
+
         </div>
 
-        <div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-3">Project Description</h3>
-          <div class="text-gray-700 prose prose-sm max-w-none" v-html="project.description"></div>
-        </div>
-        
-        <!-- Attachments -->
-        <div v-if="project.project_attachments && project.project_attachments.length > 0">
-           <h3 class="text-lg font-semibold text-gray-900 mb-3">Attachments</h3>
-           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-             <a 
-               v-for="att in project.project_attachments" 
-               :key="att.id"
-               href="javascript:void(0)"
-               @click="previewAttachment(att)"
-               class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-             >
-               <div class="w-10 h-10 rounded bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-               </div>
-               <div class="min-w-0">
-                 <p class="text-sm font-medium text-gray-900 truncate" :title="att.title">{{ att.title }}</p>
-                 <p class="text-xs text-gray-500 truncate">Click to view</p>
-               </div>
-             </a>
-           </div>
-        </div>
-      </div>
-      
-      <!-- Hired Freelancer Info (if applicable) -->
-      <div v-if="project.freelancer" class="bg-blue-50 p-6 rounded-xl border border-blue-100 flex items-center gap-4">
-        <img
-          :src="project.freelancer.avatar_url || '/img/avatar.png'"
-          @error="handleAvatarError"
-          class="w-16 h-16 rounded-full object-cover border border-white shadow-sm"
-          alt="Avatar"
-        />
-        <div>
-           <p class="text-sm text-blue-600 font-semibold uppercase tracking-wider">Hired Freelancer</p>
-           <h3 class="text-xl font-bold text-gray-900">{{ project.freelancer.name }}</h3>
-        </div>
-      </div>
+        <!-- RIGHT COLUMN — hanya muncul jika ada freelancer -->
+        <div v-if="project.freelancer_id" class="space-y-6">
 
-      <!-- SECTION 2: Submissions -->
-      <div v-if="project.freelancer_id" class="space-y-4">
-        <h2 class="text-2xl font-bold text-gray-900 border-b border-gray-200 pb-2">Submissions</h2>
-        
-        <div v-if="isLoadingSubmissions" class="animate-pulse bg-gray-50 p-6 rounded-xl h-32"></div>
-        <div v-else-if="submissions.length > 0" class="space-y-4">
-          <SubmissionCard 
-            v-for="sub in submissions" 
-            :key="sub.id" 
-            :submission="sub"
-            @approve="handleApproveSubmission"
-            @request-revision="handleRequestRevision"
+          <!-- Hired Freelancer Card -->
+          <div class="bg-white p-6 rounded-xl border border-blue-100 shadow-sm space-y-4">
+            <h3 class="text-sm font-bold text-blue-600 uppercase tracking-wider">Hired Freelancer</h3>
+            <div class="flex items-center gap-4">
+              <img
+                :src="project.freelancer?.user?.avatar || '/img/avatar.png'"
+                @error="handleAvatarError"
+                class="w-16 h-16 rounded-full object-cover border-2 border-blue-100 shadow-sm"
+                alt="Avatar"
+              />
+              <div>
+                <h4 class="text-lg font-bold text-gray-900">{{ project.freelancer?.user?.name || 'Freelancer Name'}}</h4>
+                <p class="text-sm text-gray-500">{{ project.freelancer?.user?.email || 'Freelancer Email'}}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ChatBox -->
+          <ChatBox
+            v-if="currentUser"
+            :project-id="project.id"
+            :current-user="currentUser"
+            :receiver-name="project.freelancer?.user?.name || 'Freelancer'"
           />
-        </div>
-        <div v-else class="text-center py-10 bg-white rounded-xl border border-gray-100">
-           <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-           <p class="text-gray-500">No submissions from the freelancer yet.</p>
-        </div>
-      </div>
 
-      <!-- SECTION 3: Proposals -->
-      <div v-else class="space-y-4">
-        <div class="flex items-center justify-between border-b border-gray-200 pb-2">
-           <h2 class="text-2xl font-bold text-gray-900">Proposals Received</h2>
-           <span class="bg-blue-100 text-blue-700 font-bold px-3 py-1 rounded-full text-sm">{{ proposals.length }}</span>
         </div>
-        
-        <div v-if="isLoadingProposals" class="animate-pulse bg-gray-50 p-6 rounded-xl h-32"></div>
-        <div v-else-if="proposals.length > 0" class="space-y-4">
-          <ProposalCard 
-            v-for="prop in proposals" 
-            :key="prop.id" 
-            :proposal="prop"
-            :isProcessing="isProcessingProposal === prop.id"
-            @accept="handleAcceptProposal"
-            @reject="handleRejectProposal"
-          />
-        </div>
-        <div v-else class="text-center py-12 bg-white rounded-xl border border-gray-100">
-           <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
-             <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
-           </div>
-           <h3 class="text-lg font-medium text-gray-900">No Proposals Yet</h3>
-           <p class="text-gray-500 mb-4">You haven't received any proposals for this project.</p>
-        </div>
+
       </div>
-      
     </template>
     
     <!-- Chat Widget -->
@@ -149,7 +257,7 @@
       v-if="project && project.freelancer_id && currentUser"
       :project-id="project.id"
       :current-user="currentUser"
-      :receiver-name="project.freelancer?.name || 'Freelancer'"
+      :receiver-name="project.freelancer?.user?.name || 'Freelancer'"
     />
 
     <!-- Attachment Preview Modal -->
@@ -276,8 +384,8 @@ const isPreviewOpen = ref(false)
 const selectedAttachment = ref<any>(null)
 
 const isLoading = ref(true)
-const isLoadingProposals = ref(false)
-const isLoadingSubmissions = ref(false)
+const isLoadingProposals = ref(true)
+const isLoadingSubmissions = ref(true)
 const error = ref('')
 
 const isDeleteConfirmOpen = ref(false)
