@@ -185,6 +185,7 @@
 
             <div v-else-if="submissions.length > 0" class="space-y-4">
               <SubmissionCard v-for="sub in submissions" :key="sub.id" :submission="sub"
+                :is-client="true"
                 @approve="handleApproveSubmission" @request-revision="handleRequestRevision" />
             </div>
             <div v-else class="text-center py-10 bg-white rounded-xl border border-gray-100">
@@ -274,13 +275,7 @@
       </div>
     </template>
     
-    <!-- Chat Widget -->
-    <ChatBox 
-      v-if="project && project.freelancer_id && currentUser"
-      :project-id="project.id"
-      :current-user="currentUser"
-      :receiver-name="project.freelancer?.user?.name || 'Freelancer'"
-    />
+    <!-- Removed duplicate ChatBox Widget here as it is already in the right column -->
 
     <!-- Attachment Preview Modal -->
     <BaseModal

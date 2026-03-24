@@ -27,6 +27,10 @@ export const projectService = {
     return apiClient.get<PaginatedResponse<Project>>('/projects/my', { params: filters })
   },
 
+  getFreelancerJobs(params: any = {}) {
+    return apiClient.get<ApiResponse<PaginatedResponse<Project>>>('/projects/freelancer/my', { params })
+  },
+
   createProject(data: Partial<Project>) {
     return apiClient.post<ApiResponse<Project>>('/projects', data)
   },

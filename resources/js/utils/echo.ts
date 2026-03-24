@@ -1,5 +1,6 @@
 import Echo from 'laravel-echo'
 import Pusher from 'pusher-js'
+import apiClient from '@/services/apiClient' 
 
 window.Pusher = Pusher
 
@@ -10,6 +11,33 @@ const echo = new Echo({
   wsPort: import.meta.env.VITE_REVERB_PORT,
   forceTLS: false,
   enabledTransports: ['ws'],
-})
 
-export default echo
+  authorizer: (channel: any) => {
+    return {
+      authorize: (socketId: string, callback: Function) => {
+        apiClient.post('/broadcasting/auth', {
+          socket_id: socketId,
+          channel_name: channel.name
+        }, {
+          headers: {
+             'Accept': 'application/json'
+          }
+        })
+        .then(response => {
+          const authPayload = response.data.auth 
+                              ? response.data 
+                              : (response.data.data || response.data);
+                              
+          callback(false, authPayload);
+        })
+        .catch(error => {
+          callback(true, error);
+        });
+      }
+    };
+  },
+});
+
+;(window as any).Echo = echo;
+
+export default echo;

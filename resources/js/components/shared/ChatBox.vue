@@ -15,8 +15,17 @@
         </div>
         
         <!-- Messages Area -->
-        <div class="flex-1 p-4 overflow-y-auto bg-gray-50 flex flex-col gap-3" ref="messagesContainer">
-          <div v-if="isLoading" class="flex justify-center py-4">
+        <div 
+          class="flex-1 p-4 overflow-y-auto bg-gray-50 flex flex-col gap-3 relative" 
+          ref="messagesContainer"
+          @scroll="handleScroll"
+        >
+          <!-- Loading More (Top) -->
+          <div v-if="isLoadingMore" class="flex justify-center py-2">
+             <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+          </div>
+
+          <div v-if="isLoading && currentPage === 1" class="flex justify-center py-4">
              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
           </div>
           
@@ -93,37 +102,77 @@ const props = defineProps<{
 
 const isOpen = ref(false)
 const isLoading = ref(false)
+const isLoadingMore = ref(false)
 const isSending = ref(false)
 const messages = ref<any[]>([])
 const newMessage = ref('')
 const messagesContainer = ref<HTMLElement | null>(null)
 
+const currentPage = ref(1)
+const lastPage = ref(1)
+
 let echoChannel: any = null
 
 const scrollToBottom = async () => {
   await nextTick()
-  if (messagesContainer.value) {
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
-  }
+  // Add a small delay to account for 'slide-up' transition
+  setTimeout(() => {
+    if (messagesContainer.value) {
+      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+    }
+  }, 100)
 }
 
-const loadMessages = async () => {
-  isLoading.value = true
+const loadMessages = async (page = 1) => {
+  if (page === 1) {
+    isLoading.value = true
+  } else {
+    isLoadingMore.value = true
+  }
+
   try {
-    const res = await messageService.getMessages(props.projectId)
-    messages.value = res.data?.data || []
-    scrollToBottom()
+    const res = await messageService.getMessages(props.projectId, page)
+    const response = res.data
+    
+    const newMessages = [...(response.data || [])].reverse()
+
+    if (page === 1) {
+      messages.value = newMessages
+      lastPage.value = response.meta?.last_page || 1
+      scrollToBottom()
+    } else {
+      const container = messagesContainer.value
+      const oldHeight = container ? container.scrollHeight : 0
+      
+      messages.value = [...newMessages, ...messages.value]
+      currentPage.value = page
+      
+      await nextTick()
+      if (container) {
+        container.scrollTop = container.scrollHeight - oldHeight
+      }
+    }
   } catch (error) {
     console.error('Failed to load messages', error)
   } finally {
     isLoading.value = false
+    isLoadingMore.value = false
+  }
+}
+
+const handleScroll = () => {
+  const container = messagesContainer.value
+  if (!container || isLoadingMore.value) return
+
+  if (container.scrollTop === 0 && currentPage.value < lastPage.value) {
+    loadMessages(currentPage.value + 1)
   }
 }
 
 const openChat = () => {
   isOpen.value = true
   if (messages.value.length === 0) {
-    loadMessages()
+    loadMessages(1)
   } else {
     scrollToBottom()
   }
@@ -148,10 +197,8 @@ const sendMessage = async () => {
   
   try {
     await messageService.sendMessage(props.projectId, content)
-    // Server will respond via websocket or we can reload
   } catch (error) {
     console.error('Failed to send message', error)
-    // Remove fake message on error
     messages.value = messages.value.filter(m => m.id !== fakeId)
   } finally {
     isSending.value = false
@@ -161,18 +208,30 @@ const sendMessage = async () => {
 const setupWebSocket = () => {
   if (echo) {
     echoChannel = echo.private(`project.${props.projectId}`)
-      .listen('MessageSent', (e: any) => {
-        // Find existing fake message to avoid duplicates
-        const existingFakeIndex = messages.value.findIndex(m => m.content === e.message.content && m.sender_id === e.message.sender_id && !m.updated_at)
-        if (existingFakeIndex >= 0) {
-           messages.value[existingFakeIndex] = e.message
-        } else {
-           messages.value.push(e.message)
+      .listen('.message.sent', (e: any) => {
+        if (e.message.sender_id === props.currentUser.id) {
+            return;
         }
+        messages.value.push(e.message)
         scrollToBottom()
-      })
+      });
   }
 }
+// const setupWebSocket = () => {
+//   const echo = (window as any).Echo
+//   if (echo) {
+//     echoChannel = echo.private(`project.${props.projectId}`)
+//       .listen('.message.sent', (e: any) => {
+//         const existingFakeIndex = messages.value.findIndex(m => m.content === e.message.content && m.sender_id === e.message.sender_id && !m.updated_at)
+//         if (existingFakeIndex >= 0) {
+//            messages.value[existingFakeIndex] = e.message
+//         } else {
+//            messages.value.push(e.message)
+//         }
+//         scrollToBottom()
+//       })
+//   }
+// }
 
 watch(isOpen, (val) => {
   if (val) {

@@ -47,12 +47,24 @@ class MessageController extends Controller
     public function store(int $projectId, Request $request): JsonResponse
     {
         try {
-            $validated = $request->validate(['content' => 'required|string|min:1']);
+            $validated = $request->validate([
+                'content' => 'required|string|min:1'
+            ]);
+
+            $project = \App\Models\Project::findOrFail($projectId);
+            $user = auth()->user();
+
+            $isAuthorized = $project->client_id === $user->clientProfile?->id ||
+                            $project->freelancer_id === $user->freelancerProfile?->id;
+
+            if (!$isAuthorized) {
+                return $this->forbiddenResponse();
+            }
 
             $message = $this->messageService->sendMessage(
                 $validated,
                 $projectId,
-                auth()->id()
+                $user->id
             );
 
             return $this->successResponse('Message sent successfully', $message, 201);

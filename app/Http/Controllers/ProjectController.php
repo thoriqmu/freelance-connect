@@ -54,6 +54,35 @@ class ProjectController extends Controller
     }
 
     /**
+     * Get projects assigned to the current freelancer
+     */
+    public function freelancerJobs(Request $request): JsonResponse
+    {
+        try {
+            $user = auth()->user();
+            $freelancerProfile = $user->freelancerProfile;
+
+            if (!$freelancerProfile) {
+                return $this->errorResponse('Freelancer profile not found', 404);
+            }
+
+            $query = Project::where('freelancer_id', $freelancerProfile->id)
+                ->with(['client.user']);
+
+            $status = $request->input('status');
+            if ($status) {
+                $query->where('status', $status);
+            }
+
+            $projects = $query->latest()->paginate($request->input('per_page', 10));
+
+            return $this->successResponse('Success', $projects, 200);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Create a new project (client only)
      */
     public function store(StoreProjectRequest $request): JsonResponse

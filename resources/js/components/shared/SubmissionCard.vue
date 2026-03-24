@@ -30,7 +30,7 @@
       </div>
     </div>
     
-    <div class="flex justify-end gap-2 pt-3" v-if="submission.status === 'PENDING_REVIEW'">
+    <div class="flex justify-end gap-2 pt-3" v-if="isClient && submission.status === 'PENDING_REVIEW'">
        <BaseButton label="Request Revision" variant="outline" size="sm" @click="$emit('request-revision', submission.id)" />
        <BaseButton label="Approve" variant="primary" size="sm" @click="$emit('approve', submission.id)" />
     </div>
@@ -43,6 +43,7 @@ import BaseBadge from '@/components/ui/BaseBadge.vue'
 
 defineProps<{
   submission: any
+  isClient?: boolean
 }>()
 
 defineEmits(['approve', 'request-revision'])

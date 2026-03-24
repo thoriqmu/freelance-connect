@@ -38,6 +38,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('projects')->group(function () {
             Route::get('/', [ProjectController::class, 'index']);
             Route::get('/my', [ProjectController::class, 'myProjects'])->middleware('role:client');
+            Route::get('/freelancer/my', [ProjectController::class, 'freelancerJobs'])->middleware('role:freelancer');
             Route::post('/', [ProjectController::class, 'store'])->middleware('role:client');
             Route::get('/{id}', [ProjectController::class, 'show']);
             Route::put('/{id}', [ProjectController::class, 'update'])->middleware('role:client');

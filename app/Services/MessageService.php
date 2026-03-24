@@ -6,6 +6,7 @@ use App\Models\Message;
 use App\Models\Project;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Models\User;
 
 class MessageService
 {
@@ -27,10 +28,12 @@ class MessageService
     {
         try {
             $project = Project::findOrFail($projectId);
+            $user = User::with(['clientProfile', 'freelancerProfile'])->findOrFail($senderId);
 
-            // Only client and assigned freelancer can chat
-            $isAuthorized = $project->client_id === $senderId || $project->freelancer_id === $senderId;
-            if (!$isAuthorized) {
+            $isClient = $project->client_id === $user->clientProfile?->id;
+            $isFreelancer = $project->freelancer_id === $user->freelancerProfile?->id;
+
+            if (!$isClient && !$isFreelancer) {
                 throw new \Exception('You are not part of this project.', 403);
             }
 
@@ -39,6 +42,8 @@ class MessageService
                 'sender_id' => $senderId,
                 'content' => $data['content'],
             ]);
+
+            event(new \App\Events\MessageSent($message));
 
             Log::info('Message sent', ['message_id' => $message->id, 'project_id' => $projectId]);
 
