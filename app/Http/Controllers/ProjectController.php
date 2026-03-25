@@ -74,6 +74,11 @@ class ProjectController extends Controller
                 $query->where('status', $status);
             }
 
+            $search = $request->input('search');
+            if ($search) {
+                $query->where('title', 'like', '%' . $search . '%');
+            }
+
             $projects = $query->latest()->paginate($request->input('per_page', 10));
 
             return $this->successResponse('Success', $projects, 200);
