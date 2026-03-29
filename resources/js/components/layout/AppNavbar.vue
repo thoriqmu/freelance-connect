@@ -131,7 +131,8 @@ const showMobileMenu = ref(false)
 defineEmits(['toggle-sidebar'])
 
 const avatarUrl = computed(() => {
-  return authStore.user?.avatar || '/img/avatar.png'
+  const baseUrl = import.meta.env.VITE_API_BASE_URL.replace('/api/v1', '')
+  return `${baseUrl}/storage/${authStore.user?.avatar}` || '/img/avatar.png'
 })
 
 function onAvatarError(e: Event) {

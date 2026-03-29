@@ -170,7 +170,7 @@
             <h3 class="text-sm font-bold text-blue-600 uppercase tracking-wider">Hired Freelancer</h3>
             <div class="flex items-center gap-4">
               <img
-                :src="project.freelancer?.user?.avatar || '/img/avatar.png'"
+                :src="getAvatarUrl(project.freelancer?.user?.avatar) || '/img/avatar.png'"
                 @error="handleAvatarError"
                 class="w-16 h-16 rounded-full object-cover border-2 border-blue-100 shadow-sm"
                 alt="Avatar"
@@ -646,6 +646,11 @@ const getStatusBadge = (status: string) => {
 const formatStatus = (status: string) => {
   if (!status) return ''
   return status.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
+const getAvatarUrl = (path: string) => {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL.replace('/api/v1', '')
+  return `${baseUrl}/storage/${path}` || '/img/avatar.png'
 }
 
 const handleAvatarError = (event: Event) => {

@@ -252,7 +252,7 @@
           <h3 class="font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100">About the Client</h3>
           <div class="flex items-center gap-3 mb-4">
             <img
-              :src="project.client?.user?.avatar || '/img/avatar.png'"
+              :src="getAvatarUrl(project.client?.user?.avatar) || '/img/avatar.png'"
               @error="handleAvatarError"
               class="w-12 h-12 rounded-full object-cover bg-gray-100"
               alt="Client Avatar"
@@ -467,6 +467,11 @@ const getStatusBadgeType = (status: string) => {
     case 'pending': return 'warning'
     default: return 'info'
   }
+}
+
+const getAvatarUrl = (path: string) => {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL.replace('/api/v1', '')
+  return `${baseUrl}/storage/${path}` || '/img/avatar.png'
 }
 
 const handleAvatarError = (event: Event) => {

@@ -13,6 +13,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SavedJobController;
+use App\Http\Controllers\SkillController;
 
 Route::prefix('v1')->group(function () {
     // Auth Routes (Public)
@@ -24,6 +25,9 @@ Route::prefix('v1')->group(function () {
         // Auth
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/me', [AuthController::class, 'me']);
+
+        // Skills Lookup
+        Route::get('/skills', [SkillController::class, 'index']);
 
         // Profile
         Route::prefix('profile')->group(function () {
