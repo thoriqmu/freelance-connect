@@ -63,7 +63,7 @@ Route::prefix('v1')->group(function () {
             Route::prefix('/{projectId}/submissions')->group(function () {
                 Route::get('/', [SubmissionController::class, 'projectSubmissions']);
                 Route::post('/', [SubmissionController::class, 'store'])->middleware('role:freelancer');
-                Route::patch('/{submissionId}/approve', [SubmissionController::class, 'approve'])->middleware('role:client');
+                Route::patch('/{submissionId}/approve', [SubmissionController::class, 'approveSubmission'])->middleware('role:client');
                 Route::patch('/{submissionId}/request-revision', [SubmissionController::class, 'requestRevision'])->middleware('role:client');
             });
 
@@ -100,6 +100,7 @@ Route::prefix('v1')->group(function () {
         // Submissions
         Route::prefix('submissions')->group(function () {
             Route::get('/{id}', [SubmissionController::class, 'show']);
+            Route::post('/{id}/attachments', [SubmissionController::class, 'uploadAttachment'])->middleware('role:freelancer');
         });
 
         // Reviews

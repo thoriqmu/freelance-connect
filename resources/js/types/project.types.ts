@@ -44,7 +44,8 @@ export interface Submission {
   project_id: number
   freelancer_id: number
   note: string
-  status: 'PENDING_REVIEW' | 'APPROVED' | 'REVISION_REQUESTED'
+  status: 'pending' | 'accepted' | 'rejected'
+  feedback: string
   created_at: string
   updated_at: string
   attachments?: SubmissionAttachment[]

@@ -5,6 +5,10 @@ export const submissionService = {
     return apiClient.get(`/projects/${projectId}/submissions`)
   },
   
+  submitSubmission(projectId: number, data: FormData) {
+    return apiClient.post(`/projects/${projectId}/submissions`, data)
+  },
+  
   approveSubmission(projectId: number, submissionId: number) {
     return apiClient.patch(`/projects/${projectId}/submissions/${submissionId}/approve`)
   },

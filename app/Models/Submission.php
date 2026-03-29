@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['project_id', 'freelancer_id', 'note', 'status'])]
+#[Fillable(['project_id', 'freelancer_id', 'note', 'status', 'feedback'])]
 class Submission extends Model
 {
     /**

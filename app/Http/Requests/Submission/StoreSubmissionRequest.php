@@ -23,8 +23,10 @@ class StoreSubmissionRequest extends FormRequest
     {
         return [
             'note' => 'required|string|min:10',
+            'feedback' => 'nullable|string|min:10',
             'attachments' => 'sometimes|array',
-            'attachments.*' => 'file|max:10240|mimes:pdf,jpg,jpeg,png,zip,doc,docx',
+            'attachments.*.file' => 'required|file|max:10240|mimes:pdf,jpg,jpeg,png,zip,doc,docx',
+            'attachments.*.title' => 'nullable|string|max:255',
         ];
     }
 }

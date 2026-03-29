@@ -158,7 +158,43 @@
             </div>
           </div>
 
-          <!-- SECTION 2: Submissions -->
+          
+
+        </div>
+
+        <!-- RIGHT COLUMN — hanya muncul jika ada freelancer -->
+        <div v-if="project.freelancer_id" class="space-y-6">
+
+          <!-- Hired Freelancer Card -->
+          <div class="bg-white p-6 rounded-xl border border-blue-100 shadow-sm space-y-4">
+            <h3 class="text-sm font-bold text-blue-600 uppercase tracking-wider">Hired Freelancer</h3>
+            <div class="flex items-center gap-4">
+              <img
+                :src="project.freelancer?.user?.avatar || '/img/avatar.png'"
+                @error="handleAvatarError"
+                class="w-16 h-16 rounded-full object-cover border-2 border-blue-100 shadow-sm"
+                alt="Avatar"
+              />
+              <div>
+                <h4 class="text-lg font-bold text-gray-900">{{ project.freelancer?.user?.name || 'Freelancer Name'}}</h4>
+                <p class="text-sm text-gray-500">{{ project.freelancer?.user?.email || 'Freelancer Email'}}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ChatBox -->
+          <ChatBox
+            v-if="currentUser"
+            :project-id="project.id"
+            :current-user="currentUser"
+            :receiver-name="project.freelancer?.user?.name || 'Freelancer'"
+          />
+
+        </div>
+
+      </div>
+      
+      <!-- SECTION 2: Submissions -->
           <div v-if="project.freelancer_id" class="space-y-4">
             <h2 class="text-2xl font-bold text-gray-900 border-b border-gray-200 pb-2">Submissions</h2>
 
@@ -185,7 +221,7 @@
 
             <div v-else-if="submissions.length > 0" class="space-y-4">
               <SubmissionCard v-for="sub in submissions" :key="sub.id" :submission="sub"
-                :is-client="true"
+                :is-client="true" @preview-attachment="previewAttachment"
                 @approve="handleApproveSubmission" @request-revision="handleRequestRevision" />
             </div>
             <div v-else class="text-center py-10 bg-white rounded-xl border border-gray-100">
@@ -239,40 +275,6 @@
               <p class="text-gray-500 mb-4">You haven't received any proposals for this project.</p>
             </div>
           </div>
-
-        </div>
-
-        <!-- RIGHT COLUMN — hanya muncul jika ada freelancer -->
-        <div v-if="project.freelancer_id" class="space-y-6">
-
-          <!-- Hired Freelancer Card -->
-          <div class="bg-white p-6 rounded-xl border border-blue-100 shadow-sm space-y-4">
-            <h3 class="text-sm font-bold text-blue-600 uppercase tracking-wider">Hired Freelancer</h3>
-            <div class="flex items-center gap-4">
-              <img
-                :src="project.freelancer?.user?.avatar || '/img/avatar.png'"
-                @error="handleAvatarError"
-                class="w-16 h-16 rounded-full object-cover border-2 border-blue-100 shadow-sm"
-                alt="Avatar"
-              />
-              <div>
-                <h4 class="text-lg font-bold text-gray-900">{{ project.freelancer?.user?.name || 'Freelancer Name'}}</h4>
-                <p class="text-sm text-gray-500">{{ project.freelancer?.user?.email || 'Freelancer Email'}}</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- ChatBox -->
-          <ChatBox
-            v-if="currentUser"
-            :project-id="project.id"
-            :current-user="currentUser"
-            :receiver-name="project.freelancer?.user?.name || 'Freelancer'"
-          />
-
-        </div>
-
-      </div>
     </template>
     
     <!-- Removed duplicate ChatBox Widget here as it is already in the right column -->
@@ -368,6 +370,43 @@
         <BaseButton label="Reject Proposal" class="bg-red-600 hover:bg-red-700 text-white border-none" @click="confirmRejectProposal" :loading="isProcessingProposal !== null" />
       </template>
     </BaseModal>
+
+    <!-- Approve Submission Confirmation Modal -->
+    <BaseModal
+      :is-open="isApproveConfirmOpen"
+      title="Approve Submission"
+      @close="isApproveConfirmOpen = false"
+    >
+      <div class="py-4">
+        <p class="text-gray-700">Are you sure you want to approve this submission? This will mark the project as completed and might trigger payment processing.</p>
+      </div>
+      <template #actions>
+        <BaseButton label="Cancel" variant="outline" @click="isApproveConfirmOpen = false" />
+        <BaseButton label="Approve Submission" class="bg-green-600 hover:bg-green-700 text-white border-none" @click="confirmApproveSubmission" />
+      </template>
+    </BaseModal>
+
+    <!-- Request Revision Modal -->
+    <BaseModal
+      :is-open="isRevisionModalOpen"
+      title="Request Revision"
+      @close="isRevisionModalOpen = false"
+    >
+      <div class="py-4 space-y-4">
+        <p class="text-gray-700">Please provide feedback or instructions for the revision so the freelancer knows what to fix.</p>
+        <textarea 
+          v-model="revisionNote" 
+          rows="4" 
+          class="w-full text-base p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+          placeholder="What needs to be changed?..." 
+          required
+        ></textarea>
+      </div>
+      <template #actions>
+        <BaseButton label="Cancel" variant="outline" @click="isRevisionModalOpen = false" />
+        <BaseButton label="Request Revision" class="bg-blue-600 hover:bg-blue-700 text-white border-none" @click="confirmRequestRevision" :disabled="!revisionNote.trim()" />
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -409,6 +448,12 @@ const isActionDropdownOpen = ref(false)
 const isDeleteConfirmOpen = ref(false)
 const isAcceptConfirmOpen = ref(false)
 const isRejectConfirmOpen = ref(false)
+
+const isApproveConfirmOpen = ref(false)
+const isRevisionModalOpen = ref(false)
+const revisionNote = ref('')
+const selectedSubmissionId = ref<number | null>(null)
+
 const selectedProposalId = ref<number | null>(null)
 const isDeleting = ref(false)
 const isProcessingProposal = ref<number | null>(null)
@@ -548,26 +593,43 @@ const handleDeleteProject = async () => {
   }
 }
 
-const handleApproveSubmission = async (submissionId: number) => {
-  if (!confirm('Are you sure you want to approve this submission? This might trigger payment processing.')) return
+const handleApproveSubmission = (submissionId: number) => {
+  selectedSubmissionId.value = submissionId
+  isApproveConfirmOpen.value = true
+}
+
+const confirmApproveSubmission = async () => {
+  if (!selectedSubmissionId.value) return
   
   try {
-    await submissionService.approveSubmission(projectId, submissionId)
+    await submissionService.approveSubmission(projectId, selectedSubmissionId.value)
+    isApproveConfirmOpen.value = false
     await fetchSubmissions()
-  } catch (err) {
-    alert('Failed to approve submission')
+    await fetchProject() // Update status on the page
+  } catch (err: any) {
+    alert(err.response?.data?.message || 'Failed to approve submission')
+  } finally {
+    selectedSubmissionId.value = null
   }
 }
 
-const handleRequestRevision = async (submissionId: number) => {
-  const note = prompt('Please enter the revision feedback:')
-  if (!note) return
+const handleRequestRevision = (submissionId: number) => {
+  selectedSubmissionId.value = submissionId
+  revisionNote.value = ''
+  isRevisionModalOpen.value = true
+}
+
+const confirmRequestRevision = async () => {
+  if (!selectedSubmissionId.value || !revisionNote.value.trim()) return
   
   try {
-    await submissionService.requestRevision(projectId, submissionId, { feedback: note })
+    await submissionService.requestRevision(projectId, selectedSubmissionId.value, { feedback: revisionNote.value })
+    isRevisionModalOpen.value = false
     await fetchSubmissions()
-  } catch (err) {
-    alert('Failed to request revision')
+  } catch (err: any) {
+    alert(err.response?.data?.message || 'Failed to request revision')
+  } finally {
+    selectedSubmissionId.value = null
   }
 }
 

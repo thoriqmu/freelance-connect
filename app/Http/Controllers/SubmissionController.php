@@ -89,10 +89,10 @@ class SubmissionController extends Controller
     /**
      * Approve submission (client only)
      */
-    public function approve(int $id): JsonResponse
+    public function approveSubmission(int $projectId, int $submissionId): JsonResponse
     {
         try {
-            $submission = Submission::findOrFail($id);
+            $submission = Submission::findOrFail($submissionId);
             $project = $submission->project;
 
             $user = auth()->user();
@@ -113,10 +113,10 @@ class SubmissionController extends Controller
     /**
      * Request revision (client only)
      */
-    public function requestRevision(int $id): JsonResponse
+    public function requestRevision(int $projectId, int $submissionId, Request $request): JsonResponse
     {
         try {
-            $submission = Submission::findOrFail($id);
+            $submission = Submission::findOrFail($submissionId);
             $project = $submission->project;
 
             $user = auth()->user();
@@ -126,9 +126,39 @@ class SubmissionController extends Controller
                 return $this->forbiddenResponse();
             }
 
-            $submission = $this->submissionService->requestRevision($submission);
+            $submission = $this->submissionService->requestRevision($submission, $request->input('feedback'));
 
             return $this->successResponse('Revision requested successfully', $submission, 200);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Upload submission attachment
+     */
+    public function uploadAttachment(int $id, Request $request): JsonResponse
+    {
+        try {
+            $submission = Submission::findOrFail($id);
+            $user = auth()->user();
+
+            if ($submission->freelancer_id !== $user->freelancerProfile?->id) {
+                return $this->forbiddenResponse();
+            }
+
+            $request->validate([
+                'file' => 'required|file|max:10240|mimes:pdf,jpg,jpeg,png,zip,doc,docx',
+                'title' => 'nullable|string|max:255',
+            ]);
+
+            $attachment = $this->submissionService->uploadAttachment(
+                $request->file('file'),
+                $id,
+                $request->input('title')
+            );
+
+            return $this->successResponse('Attachment uploaded successfully', $attachment, 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
         }

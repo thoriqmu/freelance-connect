@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('freelancer_id')->constrained('freelancer_profiles')->onDelete('cascade');
             $table->text('note');
             $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
+            $table->text('feedback')->nullable();
             $table->timestamps();
         });
     }

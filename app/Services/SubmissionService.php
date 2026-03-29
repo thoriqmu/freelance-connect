@@ -10,7 +10,7 @@ use App\Enums\ProjectStatus;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Illuminate\Http\UploadedFile;
 
 class SubmissionService
 {
@@ -50,8 +50,10 @@ class SubmissionService
 
             // Handle attachments if provided
             if (!empty($data['attachments'])) {
-                foreach ($data['attachments'] as $file) {
-                    $this->uploadAttachment($file, $submission->id);
+                foreach ($data['attachments'] as $item) {
+                    if (isset($item['file'])) {
+                        $this->uploadAttachment($item['file'], $submission->id, $item['title'] ?? null);
+                    }
                 }
             }
 
@@ -67,14 +69,14 @@ class SubmissionService
     /**
      * Upload submission attachment
      */
-    public function uploadAttachment(UploadedFile $file, int $submissionId): SubmissionAttachment
+    public function uploadAttachment(UploadedFile $file, int $submissionId, ?string $title = null): SubmissionAttachment
     {
         try {
             $path = $file->store("submissions/{$submissionId}/attachments", 'public');
 
             $attachment = SubmissionAttachment::create([
                 'submission_id' => $submissionId,
-                'title' => $file->getClientOriginalName(),
+                'title' => $title ?? $file->getClientOriginalName(),
                 'file_path' => $path,
             ]);
 
@@ -108,10 +110,10 @@ class SubmissionService
     /**
      * Request revision
      */
-    public function requestRevision(Submission $submission): Submission
+    public function requestRevision(Submission $submission, string $feedback): Submission
     {
         try {
-            $submission->update(['status' => SubmissionStatus::REJECTED->value]);
+            $submission->update(['status' => SubmissionStatus::REJECTED->value, 'feedback' => $feedback]);
 
             Log::info('Revision requested', ['submission_id' => $submission->id]);
 

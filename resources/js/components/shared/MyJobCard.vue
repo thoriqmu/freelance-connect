@@ -7,8 +7,8 @@
           {{ job.title }}
         </RouterLink>
       </h3>
-      <BaseBadge :variant="job.status === 'completed' ? 'success' : 'warning'" class="flex-shrink-0">
-        {{ job.status === 'completed' ? 'Completed' : 'In Progress' }}
+      <BaseBadge :type="getStatusBadge(job.status)" class="flex-shrink-0">
+        {{ formatStatus(job.status) }}
       </BaseBadge>
     </div>
 
@@ -78,4 +78,14 @@ const skills = computed(() => {
     return []
   }
 })
+
+const getStatusBadge = (status: string) => {
+  if (status === 'completed') return 'success'
+  if (status === 'in_progress') return 'warning'
+  return 'info'
+}
+
+const formatStatus = (status: string) => {
+  return status.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
 </script>
