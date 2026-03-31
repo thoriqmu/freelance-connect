@@ -33,7 +33,7 @@
           variant="outline" 
           size="sm" 
           class="text-blue-600 border-gray-200"
-          @click="$router.push(`/client/freelancers/${proposal.freelancer_id}`)" 
+          @click="$router.push(`/client/freelancers/${proposal.freelancer?.user?.id}?project_id=${proposal.project_id}`)" 
         />
         <template v-if="proposal.status === 'pending'">
           <BaseButton label="Reject" variant="outline" size="sm" class="flex-1 md:flex-none text-red-600 hover:bg-red-50 border-gray-300" @click="$emit('reject', proposal.id)" :disabled="isProcessing" />

@@ -228,6 +228,74 @@
               <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
               <p class="text-gray-500">No submissions from the freelancer yet.</p>
             </div>
+
+            <!-- SECTION 2.5: Review System (Client side) -->
+            <div v-if="project.status === 'completed'" class="space-y-4">
+              <h2 class="text-2xl font-bold text-gray-900 border-b border-gray-200 pb-2">Project Review</h2>
+              
+              <!-- Existing Review -->
+              <div v-if="project.reviews && project.reviews.length > 0" class="bg-blue-50 p-6 rounded-xl border border-blue-100 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-1">
+                    <svg v-for="i in 5" :key="i" class="w-5 h-5" :class="i <= project.reviews[0].rating ? 'text-yellow-400 fill-current' : 'text-gray-300'" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                    <span class="ml-2 font-bold text-gray-900">{{ project.reviews[0].rating }}/5</span>
+                  </div>
+                  <span class="text-xs text-gray-500">{{ new Date(project.reviews[0].created_at).toLocaleDateString() }}</span>
+                </div>
+                <p class="text-gray-700 italic">"{{ project.reviews[0].comment || 'No comment provided.' }}"</p>
+                <div class="flex items-center gap-2 text-sm text-blue-600 font-medium">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                  Review submitted
+                </div>
+              </div>
+
+              <!-- Give Review Form -->
+              <div v-else class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
+                <div class="space-y-2">
+                  <h3 class="text-lg font-bold text-gray-900">Rate the Freelancer</h3>
+                  <p class="text-sm text-gray-500">How was your experience working with {{ project.freelancer?.user?.name }}?</p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button 
+                    v-for="star in 5" 
+                    :key="star"
+                    @click="newReview.rating = star"
+                    @mouseenter="hoverRating = star"
+                    @mouseleave="hoverRating = 0"
+                    class="focus:outline-none transition-transform hover:scale-110"
+                  >
+                    <svg 
+                      class="w-10 h-10" 
+                      :class="(hoverRating || newReview.rating) >= star ? 'text-yellow-400 fill-current' : 'text-gray-200'" 
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  </button>
+                  <span v-if="newReview.rating" class="ml-3 font-bold text-gray-900 text-lg">{{ newReview.rating }}/5</span>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="block text-sm font-bold text-gray-700">Write a Comment (Optional)</label>
+                  <textarea 
+                    v-model="newReview.comment" 
+                    rows="3" 
+                    class="w-full text-base p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                    placeholder="Describe your experience..."
+                  ></textarea>
+                </div>
+
+                <BaseButton 
+                  label="Submit Review" 
+                  variant="primary" 
+                  @click="handleSubmitReview" 
+                  :loading="isSubmittingReview"
+                  :disabled="newReview.rating === 0"
+                  class="w-full md:w-auto"
+                />
+              </div>
+            </div>
           </div>
 
           <!-- SECTION 3: Proposals -->
@@ -427,6 +495,7 @@ import BaseModal from '@/components/ui/BaseModal.vue'
 import { projectService } from '@/services/projectService'
 import { proposalService } from '@/services/proposalService'
 import { submissionService } from '@/services/submissionService'
+import { reviewService } from '@/services/reviewService'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -457,6 +526,13 @@ const selectedSubmissionId = ref<number | null>(null)
 const selectedProposalId = ref<number | null>(null)
 const isDeleting = ref(false)
 const isProcessingProposal = ref<number | null>(null)
+
+const isSubmittingReview = ref(false)
+const hoverRating = ref(0)
+const newReview = ref({
+  rating: 0,
+  comment: ''
+})
 
 const currentUser = computed(() => authStore.user)
 const router = useRouter()
@@ -630,6 +706,25 @@ const confirmRequestRevision = async () => {
     alert(err.response?.data?.message || 'Failed to request revision')
   } finally {
     selectedSubmissionId.value = null
+  }
+}
+
+const handleSubmitReview = async () => {
+  if (newReview.value.rating === 0) return
+  
+  isSubmittingReview.value = true
+  try {
+    await reviewService.createReview(projectId, {
+      reviewee_id: project.value.freelancer?.user?.id,
+      rating: newReview.value.rating,
+      comment: newReview.value.comment || ''
+    })
+    alert('Review submitted successfully!')
+    await fetchProject()
+  } catch (err: any) {
+    alert(err.response?.data?.message || 'Failed to submit review')
+  } finally {
+    isSubmittingReview.value = false
   }
 }
 
