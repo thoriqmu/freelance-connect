@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\ClientProfile;
 use App\Models\FreelancerProfile;
+use App\Models\Proposal;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -16,17 +17,49 @@ class ProfileService
      */
     public function getUserProfile(int $userId): ?User
     {
-        return User::with(['clientProfile', 'freelancerProfile'])->find($userId);
+        return User::with(['clientProfile', 'freelancerProfile'])
+            ->withCount(['reviewsAsReviewee', 'projects as completed_projects_count' => function($query) {
+                $query->where('status', 'completed');
+            }])
+            ->withAvg('reviewsAsReviewee', 'rating')
+            ->find($userId);
     }
 
-    /**
-     * Get public profile of a user
-     */
     public function getPublicProfile(int $userId): ?User
     {
         return User::with(['clientProfile', 'freelancerProfile'])
+            ->withCount(['reviewsAsReviewee', 'projects as completed_projects_count' => function($query) {
+                $query->where('status', 'completed');
+            }])
+            ->withAvg('reviewsAsReviewee', 'rating')
             ->select('id', 'name', 'email', 'role', 'avatar', 'created_at')
             ->find($userId);
+    }
+
+    /**
+     * Check if a client can view a freelancer's profile
+     */
+    public function canViewFreelancerProfile(User $viewer, User $target): bool
+    {
+        // Clients can only view freelancers who have submitted a proposal or submission to their projects
+        if ($viewer->role === 'client') {
+            $clientProfile = $viewer->clientProfile;
+            
+            if (!$clientProfile) return false;
+            
+            $targetFreelancerProfile = $target->freelancerProfile;
+            if (!$targetFreelancerProfile) return false;
+
+            return Proposal::where('freelancer_id', $targetFreelancerProfile->id)
+                ->whereHas('project', function($query) use ($clientProfile) {
+                    $query->where('client_id', $clientProfile->id);
+                })
+                ->exists();
+        }
+
+        // Freelancers can view each other? For now, yes, or we can restrict.
+        // But the user specificed "cegah client bypass".
+        return true;
     }
 
     /**

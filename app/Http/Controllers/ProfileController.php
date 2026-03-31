@@ -40,10 +40,15 @@ class ProfileController extends Controller
     public function viewPublicProfile(int $userId): JsonResponse
     {
         try {
-            $user = $this->profileService->getPublicProfile($userId);
+            $user = $this->profileService->getUserProfile($userId);
 
             if (!$user) {
                 return $this->notFoundResponse('User not found');
+            }
+
+            // Authorization check
+            if (!$this->profileService->canViewFreelancerProfile(auth()->user(), $user)) {
+                return $this->forbiddenResponse('You do not have permission to view this profile');
             }
 
             return $this->successResponse('Success', $user, 200);

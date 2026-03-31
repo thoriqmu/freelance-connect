@@ -75,7 +75,7 @@ class UserSeeder extends Seeder
                 'user_id' => $userId,
                 'skills' => json_encode(['Laravel', 'PHP']),
                 'hourly_rate' => 15.00,
-                'portofolio_url' => null,
+                'portfolio_url' => null,
                 'bio' => 'Experienced freelancer',
                 'availability' => 'available',
                 'created_at' => now(),

@@ -34,6 +34,17 @@
             <p class="text-sm text-gray-500 uppercase tracking-widest">{{ user.role }}</p>
           </div>
 
+          <div class="grid grid-cols-2 gap-4 py-2 border-y border-gray-50">
+            <div class="text-center">
+              <p class="text-lg font-bold text-blue-600">{{ Number(user.reviews_as_reviewee_avg_rating || 0).toFixed(1) }}</p>
+              <p class="text-[10px] text-gray-400 uppercase font-bold">Avg Rating</p>
+            </div>
+            <div class="text-center border-l border-gray-50">
+              <p class="text-lg font-bold text-gray-900">{{ user.completed_projects_count || 0 }}</p>
+              <p class="text-[10px] text-gray-400 uppercase font-bold">Projects</p>
+            </div>
+          </div>
+
           <BaseBadge :type="availabilityBadge" class="w-full justify-center">{{ formatAvailability(user.freelancer_profile?.availability) }}</BaseBadge>
         </div>
 
@@ -76,9 +87,8 @@
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Availability</label>
                 <select v-model="freelancerForm.availability" class="input-base">
-                  <option value="AVAILABLE">Available for Work</option>
-                  <option value="BUSY">Currently Busy</option>
-                  <option value="NOT_AVAILABLE">Not Available</option>
+                  <option value="available">Available for Work</option>
+                  <option value="unavailable">Not Available</option>
                 </select>
               </div>
             </div>
@@ -335,9 +345,8 @@ const hideDropdownDelayed = () => {
 
 const availabilityBadge = computed(() => {
   const av = user.value?.freelancer_profile?.availability
-  if (av === 'AVAILABLE') return 'success'
-  if (av === 'BUSY') return 'warning'
-  return 'danger'
+  if (av === 'available') return 'success'
+  if (av === 'unavailable') return 'danger'
 })
 
 const formatAvailability = (status?: string) => {

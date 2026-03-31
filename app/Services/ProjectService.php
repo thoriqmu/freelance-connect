@@ -238,6 +238,7 @@ class ProjectService
             'freelancer.user',
             'projectAttachments',
             'proposals',
+            'reviews',
         ])->find($projectId);
     }
 }

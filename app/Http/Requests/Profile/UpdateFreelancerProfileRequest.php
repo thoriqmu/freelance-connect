@@ -26,7 +26,7 @@ class UpdateFreelancerProfileRequest extends FormRequest
             'skills' => 'required|array|min:1',
             'skills.*' => 'string|max:255',
             'hourly_rate' => 'required|numeric|min:0',
-            'portofolio_url' => 'sometimes|nullable|url',
+            'portfolio_url' => 'sometimes|nullable|url',
             'bio' => 'sometimes|nullable|string|max:1000',
             'availability' => 'sometimes|required|in:' . implode(',', array_map(fn($case) => $case->value, Availability::cases())),
         ];

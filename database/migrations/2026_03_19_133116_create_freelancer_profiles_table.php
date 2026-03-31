@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->json('skills');
             $table->decimal('hourly_rate');
-            $table->string('portofolio_url')->nullable();
+            $table->string('portfolio_url')->nullable();
             $table->text('bio')->nullable();
             $table->enum('availability', ['available', 'unavailable'])->default('available');
             $table->timestamps();
