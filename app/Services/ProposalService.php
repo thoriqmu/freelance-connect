@@ -11,6 +11,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProposalService
 {
+    public function __construct(private NotificationService $notificationService) {}
+
     /**
      * Get proposals for a project
      */
@@ -89,6 +91,14 @@ class ProposalService
                 'status' => ProposalStatus::PENDING->value,
             ]);
 
+            // Notify Client
+            $this->notificationService->send(
+                $project->client->user->id,
+                'new_proposal',
+                "New proposal from {$proposal->freelancer->user->name} for '{$project->title}'",
+                ['project_id' => $projectId, 'proposal_id' => $proposal->id]
+            );
+
             Log::info('Proposal submitted', ['proposal_id' => $proposal->id, 'project_id' => $projectId]);
 
             return $proposal;
@@ -120,6 +130,14 @@ class ProposalService
                 'freelancer_id' => $proposal->freelancer_id,
             ]);
 
+            // Notify Freelancer
+            $this->notificationService->send(
+                $proposal->freelancer->user->id,
+                'proposal_accepted',
+                "Your proposal for '{$project->title}' has been accepted!",
+                ['project_id' => $project->id, 'proposal_id' => $proposal->id]
+            );
+
             Log::info('Proposal accepted', ['proposal_id' => $proposal->id]);
 
             return $proposal;
@@ -136,6 +154,14 @@ class ProposalService
     {
         try {
             $proposal->update(['status' => ProposalStatus::REJECTED->value]);
+
+            // Notify Freelancer
+            $this->notificationService->send(
+                $proposal->freelancer->user->id,
+                'proposal_rejected',
+                "Your proposal for '{$proposal->project->title}' was rejected.",
+                ['project_id' => $proposal->project_id, 'proposal_id' => $proposal->id]
+            );
 
             Log::info('Proposal rejected', ['proposal_id' => $proposal->id]);
 

@@ -10,6 +10,8 @@ use App\Models\User;
 
 class MessageService
 {
+    public function __construct(private NotificationService $notificationService) {}
+
     /**
      * Get messages for a project
      */
@@ -43,7 +45,14 @@ class MessageService
                 'content' => $data['content'],
             ]);
 
-            event(new \App\Events\MessageSent($message));
+            // Notify Recipient
+            $recipientId = $isClient ? $project->freelancer->user->id : $project->client->user->id;
+            $this->notificationService->send(
+                $recipientId,
+                'new_message',
+                "New message from {$user->name} regarding '{$project->title}'",
+                ['project_id' => $projectId, 'message_id' => $message->id]
+            );
 
             Log::info('Message sent', ['message_id' => $message->id, 'project_id' => $projectId]);
 

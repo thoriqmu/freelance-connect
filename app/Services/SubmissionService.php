@@ -14,6 +14,8 @@ use Illuminate\Http\UploadedFile;
 
 class SubmissionService
 {
+    public function __construct(private NotificationService $notificationService) {}
+
     /**
      * Get submissions for a project
      */
@@ -57,6 +59,14 @@ class SubmissionService
                 }
             }
 
+            // Notify Client
+            $this->notificationService->send(
+                $project->client->user->id,
+                'new_submission',
+                "Freelancer {$submission->freelancer->user->name} has submitted work for '{$project->title}'",
+                ['project_id' => $projectId, 'submission_id' => $submission->id]
+            );
+
             Log::info('Submission created', ['submission_id' => $submission->id, 'project_id' => $projectId]);
 
             return $submission;
@@ -98,6 +108,22 @@ class SubmissionService
             // Mark project as COMPLETED
             $submission->project->update(['status' => ProjectStatus::COMPLETED->value]);
 
+            // Notify Freelancer (Approved)
+            $this->notificationService->send(
+                $submission->freelancer->user->id,
+                'submission_approved',
+                "Your submission for '{$submission->project->title}' has been approved!",
+                ['project_id' => $submission->project_id, 'submission_id' => $submission->id]
+            );
+
+            // Notify Freelancer (Project Completed)
+            $this->notificationService->send(
+                $submission->freelancer->user->id,
+                'project_completed',
+                "Project '{$submission->project->title}' is now completed.",
+                ['project_id' => $submission->project_id]
+            );
+
             Log::info('Submission approved', ['submission_id' => $submission->id]);
 
             return $submission;
@@ -114,6 +140,14 @@ class SubmissionService
     {
         try {
             $submission->update(['status' => SubmissionStatus::REJECTED->value, 'feedback' => $feedback]);
+
+            // Notify Freelancer
+            $this->notificationService->send(
+                $submission->freelancer->user->id,
+                'revision_requested',
+                "Revision requested for '{$submission->project->title}'",
+                ['project_id' => $submission->project_id, 'submission_id' => $submission->id, 'feedback' => $feedback]
+            );
 
             Log::info('Revision requested', ['submission_id' => $submission->id]);
 

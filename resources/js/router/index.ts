@@ -23,6 +23,7 @@ const FreelancerMyJobsView = () => import('@/views/Freelancer/MyJobsView.vue')
 const FreelancerMyJobDetailView = () => import('@/views/Freelancer/MyJobDetailView.vue')
 const FreelancerProfileView = () => import('@/views/Freelancer/ProfileView.vue')
 const FreelancerPublicProfileView = () => import('@/views/Freelancer/PublicProfileView.vue')
+const NotificationsView = () => import('@/views/NotificationsView.vue')
 
 const routes: RouteRecordRaw[] = [
   // Public routes
@@ -139,6 +140,12 @@ const routes: RouteRecordRaw[] = [
     name: 'freelancer-profile',
     component: FreelancerProfileView,
     meta: { requiresAuth: true, role: 'freelancer' },
+  },
+  {
+    path: '/notifications',
+    name: 'notifications',
+    component: NotificationsView,
+    meta: { requiresAuth: true },
   },
 
   // Home redirect
