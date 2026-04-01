@@ -17,6 +17,7 @@
         "vite": "^8.0.0"
     },
     "dependencies": {
+        "@heroicons/vue": "^2.2.0",
         "@vitejs/plugin-vue": "^6.0.5",
         "@vueup/vue-quill": "^1.2.0",
         "pinia": "^3.0.4",
