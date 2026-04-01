@@ -27,6 +27,12 @@
           @click="emitClose"
         />
         <NavLink
+          to="/client/proposals"
+          icon="document-text"
+          label="Proposals"
+          @click="emitClose"
+        />
+        <NavLink
           to="/client/profile"
           icon="user"
           label="Profile"

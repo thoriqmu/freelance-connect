@@ -23,6 +23,33 @@ class ProposalService
     }
 
     /**
+     * Get proposals for projects belonging to a client
+     */
+    public function getClientProposals(int $clientId, int $perPage = 10, array $filters = []): LengthAwarePaginator
+    {
+        $query = Proposal::whereHas('project', function ($q) use ($clientId) {
+            $q->where('client_id', $clientId);
+        })->with(['freelancer.user', 'project']);
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('project', function ($sq) use ($search) {
+                    $sq->where('title', 'like', "%{$search}%");
+                })->orWhereHas('freelancer.user', function ($sq) use ($search) {
+                    $sq->where('name', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        if (!empty($filters['status']) && $filters['status'] !== 'all') {
+            $query->where('status', $filters['status']);
+        }
+
+        return $query->latest()->paginate($perPage);
+    }
+
+    /**
      * Get freelancer's proposals
      */
     public function getFreelancerProposals(int $freelancerId, int $perPage = 10): LengthAwarePaginator

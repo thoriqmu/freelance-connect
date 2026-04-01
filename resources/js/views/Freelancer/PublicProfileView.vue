@@ -1,6 +1,7 @@
 <template>
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <BaseAlert v-if="error" type="error" :message="error" class="mb-6" />
+    <BaseAlert v-if="error" type="error" :message="error" class="mb-6" @close="error = ''" />
+    <BaseAlert v-if="successMsg" type="success" :message="successMsg" class="mb-6" @close="successMsg = ''" />
     
     <div v-if="isLoading" class="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 animate-pulse space-y-8">
        <div class="flex flex-col items-center gap-4">
@@ -21,7 +22,7 @@
           <div class="relative flex flex-col items-center -mt-16 mb-6">
             <div class="p-1 bg-white rounded-full border-4 border-white shadow-lg">
               <img 
-                :src="freelancer.avatar || '/img/avatar.png'" 
+                :src="getAvatarUrl(freelancer.avatar) || '/img/avatar.png'" 
                 class="w-32 h-32 rounded-full object-cover" 
               />
             </div>
@@ -74,16 +75,25 @@
             </a>
           </div>
 
-          <!-- Accept Proposal Button -->
-          <div v-if="proposal && proposal.status === 'pending'" class="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center gap-3">
+          <!-- Accept/Reject Proposal Buttons -->
+          <div v-if="proposal && proposal.status === 'pending'" class="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center gap-4">
              <p class="text-sm text-gray-500 font-medium italic">This freelancer has a pending proposal for your project.</p>
-             <BaseButton 
-               label="Accept & Hire Freelancer" 
-               variant="primary" 
-               class="w-full max-w-sm h-14 bg-green-600 hover:bg-green-700 border-none shadow-lg shadow-green-100 text-lg"
-               @click="handleAcceptProposal"
-               :loading="isAccepting"
-             />
+             <div class="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+               <BaseButton 
+                 label="Reject Proposal" 
+                 variant="outline" 
+                 class="flex-1 h-12 text-red-600 border-red-200 hover:bg-red-50 text-base"
+                 @click="confirmReject"
+                 :disabled="isProcessing"
+               />
+               <BaseButton 
+                 label="Accept & Hire" 
+                 variant="primary" 
+                 class="flex-1 h-12 bg-green-600 hover:bg-green-700 border-none shadow-lg shadow-green-100 text-base"
+                 @click="confirmAccept"
+                 :disabled="isProcessing"
+               />
+             </div>
           </div>
         </div>
       </div>
@@ -117,6 +127,36 @@
         </div>
       </div>
     </div>
+
+    <!-- Confirm Accept Modal -->
+    <BaseModal
+      :is-open="isAcceptModalOpen"
+      title="Accept Proposal"
+      @close="isAcceptModalOpen = false"
+    >
+      <div class="py-4">
+        <p class="text-gray-700">Are you sure you want to accept this proposal and hire <strong>{{ freelancer?.name }}</strong>? This will mark the project as "In Progress".</p>
+      </div>
+      <template #actions>
+        <BaseButton label="Cancel" variant="outline" @click="isAcceptModalOpen = false" :disabled="isProcessing" />
+        <BaseButton label="Accept & Hire" class="bg-green-600 hover:bg-green-700 text-white border-none" @click="handleAcceptProposal" :loading="isProcessing" />
+      </template>
+    </BaseModal>
+
+    <!-- Confirm Reject Modal -->
+    <BaseModal
+      :is-open="isRejectModalOpen"
+      title="Reject Proposal"
+      @close="isRejectModalOpen = false"
+    >
+      <div class="py-4">
+        <p class="text-gray-700">Are you sure you want to reject <strong>{{ freelancer?.name }}</strong>'s proposal? This action cannot be undone.</p>
+      </div>
+      <template #actions>
+        <BaseButton label="Cancel" variant="outline" @click="isRejectModalOpen = false" :disabled="isProcessing" />
+        <BaseButton label="Reject Proposal" class="bg-red-600 hover:bg-red-700 text-white border-none" @click="handleRejectProposal" :loading="isProcessing" />
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -127,6 +167,7 @@ import apiClient from '@/services/apiClient'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
 import BaseAlert from '@/components/ui/BaseAlert.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
 import { proposalService } from '@/services/proposalService'
 import { useRouter } from 'vue-router'
 
@@ -135,10 +176,14 @@ const router = useRouter()
 const freelancer = ref<any>(null)
 const isLoading = ref(true)
 const error = ref('')
+const successMsg = ref('')
 
 const projectId = computed(() => route.query.project_id ? Number(route.query.project_id) : null)
 const proposal = ref<any>(null)
-const isAccepting = ref(false)
+const isProcessing = ref(false)
+
+const isAcceptModalOpen = ref(false)
+const isRejectModalOpen = ref(false)
 
 const fetchFreelancer = async () => {
   const id = route.params.id
@@ -161,6 +206,11 @@ const fetchFreelancer = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+const getAvatarUrl = (path: string) => {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL.replace('/api/v1', '')
+  return `${baseUrl}/storage/${path}` || '/img/avatar.png'
 }
 
 const availabilityBadge = computed(() => {
@@ -198,18 +248,44 @@ const fetchProposal = async () => {
 const handleAcceptProposal = async () => {
   if (!projectId.value || !proposal.value) return
   
-  if (!confirm('Are you sure you want to accept this proposal and hire this freelancer?')) return
-
-  isAccepting.value = true
+  isProcessing.value = true
   try {
     await proposalService.acceptProposal(projectId.value, proposal.value.id)
-    alert('Freelancer hired successfully!')
-    router.push(`/client/projects/${projectId.value}`)
+    successMsg.value = 'Freelancer hired successfully!'
+    isAcceptModalOpen.value = false
+    setTimeout(() => {
+      router.push(`/client/projects/${projectId.value}`)
+    }, 1500)
   } catch (err: any) {
-    alert(err.response?.data?.message || 'Failed to accept proposal')
+    error.value = err.response?.data?.message || 'Failed to accept proposal'
   } finally {
-    isAccepting.value = false
+    isProcessing.value = false
   }
+}
+
+const handleRejectProposal = async () => {
+  if (!projectId.value || !proposal.value) return
+  
+  isProcessing.value = true
+  try {
+    await proposalService.rejectProposal(projectId.value, proposal.value.id)
+    successMsg.value = 'Proposal rejected.'
+    isRejectModalOpen.value = false
+    // Refresh proposal state
+    fetchProposal()
+  } catch (err: any) {
+    error.value = err.response?.data?.message || 'Failed to reject proposal'
+  } finally {
+    isProcessing.value = false
+  }
+}
+
+const confirmAccept = () => {
+  isAcceptModalOpen.value = true
+}
+
+const confirmReject = () => {
+  isRejectModalOpen.value = true
 }
 
 onMounted(() => {

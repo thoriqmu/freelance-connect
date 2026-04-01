@@ -66,6 +66,31 @@ class ProposalController extends Controller
     }
 
     /**
+     * Get proposals for projects of the authenticated client
+     */
+    public function clientProposals(Request $request): JsonResponse
+    {
+        try {
+            $user = auth()->user();
+            $clientProfile = $user->clientProfile;
+
+            if (!$clientProfile) {
+                return $this->errorResponse('Client profile not found', 404);
+            }
+
+            $proposals = $this->proposalService->getClientProposals(
+                $clientProfile->id,
+                $request->input('per_page', 10),
+                $request->only(['search', 'status'])
+            );
+
+            return $this->successResponse('Success', $proposals, 200);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Get proposal detail
      */
     public function show(int $id): JsonResponse

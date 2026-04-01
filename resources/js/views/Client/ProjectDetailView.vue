@@ -512,6 +512,7 @@ const isLoading = ref(true)
 const isLoadingProposals = ref(true)
 const isLoadingSubmissions = ref(true)
 const error = ref('')
+const successMsg = ref('')
 
 const isActionDropdownOpen = ref(false)
 const isDeleteConfirmOpen = ref(false)
@@ -719,10 +720,11 @@ const handleSubmitReview = async () => {
       rating: newReview.value.rating,
       comment: newReview.value.comment || ''
     })
-    alert('Review submitted successfully!')
+    successMsg.value = 'Review submitted successfully!'
+    newReview.value = { rating: 0, comment: '' }
     await fetchProject()
   } catch (err: any) {
-    alert(err.response?.data?.message || 'Failed to submit review')
+    error.value = err.response?.data?.message || 'Failed to submit review'
   } finally {
     isSubmittingReview.value = false
   }

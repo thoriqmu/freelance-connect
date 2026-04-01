@@ -107,8 +107,8 @@
 
             <!-- Skills Autocomplete -->
             <div class="relative pb-10">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Skills</label>
-              <p class="text-xs text-gray-500 mb-2">Search and select skills from our database to add them to your profile.</p>
+              <label class="block text-sm font-bold text-gray-700 mb-1">Skills (Max 15)</label>
+              <p class="text-xs text-gray-500 mb-2">Search and select skills. If not found, you can type your own and press Enter.</p>
               
               <div class="flex flex-wrap gap-2 p-2 px-3 bg-white border border-gray-300 rounded-lg min-h-[46px] focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-shadow">
                 <span v-for="(skill, i) in freelancerForm.skills" :key="i" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold bg-blue-100 text-blue-800 border border-blue-200 shadow-sm">
@@ -130,6 +130,7 @@
                   @blur="hideDropdownDelayed"
                   placeholder="Type a skill..." 
                   class="flex-1 outline-none bg-transparent min-w-[150px] text-sm text-gray-700 mt-1"
+                  :disabled="freelancerForm.skills.length >= 15"
                 />
               </div>
 
@@ -146,7 +147,10 @@
                 </li>
               </ul>
               <div v-if="skillQuery.trim().length > 0 && skillResults.length === 0 && isSkillDropdownOpen && !isSearchingSkills" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3 text-sm text-gray-500 text-center">
-                No matching skills found in our database.
+                No matching skills found. Press <strong>Enter</strong> to add "{{ skillQuery }}".
+              </div>
+              <div v-if="freelancerForm.skills.length >= 15" class="mt-2 text-xs text-amber-600 font-medium">
+                You have reached the maximum of 15 skills.
               </div>
             </div>
 
@@ -319,12 +323,18 @@ const moveSkillSelection = (delta: number) => {
 }
 
 const selectCurrentSkill = () => {
-  if (skillResults.value.length > 0 && isSkillDropdownOpen.value) {
-    addSkill(skillResults.value[skillSelectedIndex.value].title)
+  if (isSkillDropdownOpen.value) {
+    if (skillResults.value.length > 0) {
+      addSkill(skillResults.value[skillSelectedIndex.value].title)
+    } else if (skillQuery.value.trim().length > 0) {
+      addSkill(skillQuery.value.trim())
+    }
   }
 }
 
 const addSkill = (title: string) => {
+  if (freelancerForm.value.skills.length >= 15) return
+  
   if (!freelancerForm.value.skills.includes(title)) {
     freelancerForm.value.skills.push(title)
   }

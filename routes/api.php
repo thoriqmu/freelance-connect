@@ -95,9 +95,10 @@ Route::prefix('v1')->group(function () {
         Route::get('/client/stats', [DashboardController::class, 'clientStats'])->middleware('role:client');
         Route::get('/freelancer/stats', [DashboardController::class, 'freelancerStats'])->middleware('role:freelancer');
 
-        // Proposals (Freelancer only)
+        // Proposals
         Route::prefix('proposals')->group(function () {
             Route::get('/my', [ProposalController::class, 'myProposals'])->middleware('role:freelancer');
+            Route::get('/client/my', [ProposalController::class, 'clientProposals'])->middleware('role:client');
             Route::get('/{id}', [ProposalController::class, 'show']);
         });
 

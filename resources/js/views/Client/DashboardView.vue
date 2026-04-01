@@ -118,7 +118,9 @@
             </div>
           </RouterLink>
 
-          <div class="card-hover">
+          <RouterLink to="/client/proposals" 
+            class="card-hover"
+          >
             <div class="flex items-center gap-4">
               <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,7 +134,7 @@
                 <p class="text-sm text-gray-500">Browse freelancer proposals</p>
               </div>
             </div>
-          </div>
+          </RouterLink>
         </div>
       </div>
 

@@ -2,7 +2,7 @@
   <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
     <div class="flex items-start gap-4 flex-1">
       <img
-        :src="proposal.freelancer?.user?.avatar || '/img/avatar.png'"
+        :src="getAvatarUrl(proposal.freelancer?.user?.avatar) || '/img/avatar.png'"
         @error="($event.target as HTMLImageElement).src = '/img/avatar.png'"
         class="w-12 h-12 rounded-full object-cover border border-gray-100"
         alt="Avatar"
@@ -64,5 +64,10 @@ defineEmits(['accept', 'reject'])
 const formatStatus = (status: string) => {
   if (!status) return ''
   return status.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
+const getAvatarUrl = (path: string) => {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL.replace('/api/v1', '')
+  return `${baseUrl}/storage/${path}` || '/img/avatar.png'
 }
 </script>

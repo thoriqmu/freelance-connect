@@ -7,6 +7,7 @@ const RegisterView = () => import('@/views/Auth/RegisterView.vue')
 
 // Client
 const ClientDashboardView = () => import('@/views/Client/DashboardView.vue')
+const ClientProposalsListView = () => import('@/views/Client/ProposalsListView.vue')
 const ClientMyProjectsView = () => import('@/views/Client/MyProjectsView.vue')
 const ClientCreateProjectView = () => import('@/views/Client/CreateProjectView.vue')
 const ClientEditProjectView = () => import('@/views/Client/EditProjectView.vue')
@@ -47,6 +48,12 @@ const routes: RouteRecordRaw[] = [
     path: '/client/dashboard',
     name: 'client-dashboard',
     component: ClientDashboardView,
+    meta: { requiresAuth: true, role: 'client' },
+  },
+  {
+    path: '/client/proposals',
+    name: 'client-proposals',
+    component: ClientProposalsListView,
     meta: { requiresAuth: true, role: 'client' },
   },
   {

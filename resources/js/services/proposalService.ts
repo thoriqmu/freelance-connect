@@ -15,5 +15,9 @@ export const proposalService = {
 
   getMyProposals(params?: Record<string, any>) {
     return apiClient.get('/proposals/my', { params })
+  },
+
+  getClientProposals(params?: Record<string, any>) {
+    return apiClient.get('/proposals/client/my', { params })
   }
 }
