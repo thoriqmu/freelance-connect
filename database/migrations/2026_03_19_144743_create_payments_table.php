@@ -14,10 +14,13 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
+            $table->foreignId('client_id')->constrained('users');
+            $table->foreignId('freelancer_id')->constrained('users');
             $table->string('transaction_id')->unique();
-            $table->decimal('amount', 10, 2);
-            $table->enum('status', ['pending', 'completed', 'failed'])->default('pending');
-            $table->string('payment_method');
+            $table->decimal('amount', 15, 2);
+            $table->enum('status', ['pending', 'in_escrow', 'released', 'refunded', 'failed', 'disputed'])->default('pending');
+            $table->timestamp('paid_at')->nullable();
+            $table->timestamp('released_at')->nullable();
             $table->timestamps();
         });
     }
