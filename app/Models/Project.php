@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable(['client_id', 'freelancer_id', 'title', 'description', 'budget', 'timeline', 'status'])]
 class Project extends Model
@@ -77,5 +78,13 @@ class Project extends Model
     public function proposals(): HasMany
     {
         return $this->hasMany(Proposal::class);
+    }
+
+    /**
+     * Get the payment associated with this project.
+     */
+    public function payment(): HasOne
+    {
+        return $this->hasOne(Payment::class);
     }
 }

@@ -83,6 +83,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the bank accounts for the user.
+     */
+    public function bankAccounts(): HasMany
+    {
+        return $this->hasMany(BankAccount::class);
+    }
+
+    /**
      * Get all projects assigned to this user (as freelancer).
      */
     public function projects(): HasManyThrough
