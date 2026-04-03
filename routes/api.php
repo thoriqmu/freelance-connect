@@ -14,8 +14,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SavedJobController;
 use App\Http\Controllers\SkillController;
+use App\Http\Controllers\Api\XenditWebhookController;
+use App\Http\Controllers\BankAccountController;
 
 Route::prefix('v1')->group(function () {
+    // Public Webhooks
+    Route::post('/webhooks/xendit', [XenditWebhookController::class, 'handle']);
+
     // Auth Routes (Public)
     Route::post('/auth/register', [AuthController::class, 'register']);
     Route::post('/auth/login', [AuthController::class, 'login']);
@@ -128,5 +133,17 @@ Route::prefix('v1')->group(function () {
             Route::get('/{projectId}/check', [SavedJobController::class, 'isSaved']);
             Route::delete('/{projectId}', [SavedJobController::class, 'destroy']);
         });
+
+        // Bank Accounts (Freelancer only)
+        Route::prefix('bank-accounts')->middleware('role:freelancer')->group(function () {
+            Route::get('/', [BankAccountController::class, 'index']);
+            Route::post('/', [BankAccountController::class, 'store']);
+            Route::put('/{bankAccount}', [BankAccountController::class, 'update']);
+            Route::delete('/{bankAccount}', [BankAccountController::class, 'destroy']);
+            Route::patch('/{bankAccount}/primary', [BankAccountController::class, 'setPrimary']);
+        });
+
+        // Payouts (Freelancer only)
+        Route::patch('projects/{project}/retry-payout', [PaymentController::class, 'retryPayout']);
     });
 });
