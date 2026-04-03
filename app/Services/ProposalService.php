@@ -7,11 +7,15 @@ use App\Models\Project;
 use App\Enums\ProposalStatus;
 use App\Enums\ProjectStatus;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProposalService
 {
-    public function __construct(private NotificationService $notificationService) {}
+    public function __construct(
+        private NotificationService $notificationService,
+        private PaymentService $paymentService
+    ) {}
 
     /**
      * Get proposals for a project
@@ -113,38 +117,43 @@ class ProposalService
      */
     public function acceptProposal(Proposal $proposal): Proposal
     {
-        try {
-            $project = $proposal->project;
+        return DB::transaction(function () use ($proposal) {
+            try {
+                $project = $proposal->project;
 
-            // Reject all other proposals
-            Proposal::where('project_id', $project->id)
-                ->where('id', '!=', $proposal->id)
-                ->update(['status' => ProposalStatus::REJECTED->value]);
+                // Reject all other proposals
+                Proposal::where('project_id', $project->id)
+                    ->where('id', '!=', $proposal->id)
+                    ->update(['status' => ProposalStatus::REJECTED->value]);
 
-            // Update proposal status
-            $proposal->update(['status' => ProposalStatus::ACCEPTED->value]);
+                // Update proposal status
+                $proposal->update(['status' => ProposalStatus::ACCEPTED->value]);
 
-            // Update project status to IN_PROGRESS and assign freelancer
-            $project->update([
-                'status' => ProjectStatus::IN_PROGRESS->value,
-                'freelancer_id' => $proposal->freelancer_id,
-            ]);
+                // Update project status to WAITING_PAYMENT and assign freelancer
+                $project->update([
+                    'status' => ProjectStatus::WAITING_PAYMENT->value,
+                    'freelancer_id' => $proposal->freelancer_id,
+                ]);
 
-            // Notify Freelancer
-            $this->notificationService->send(
-                $proposal->freelancer->user->id,
-                'proposal_accepted',
-                "Your proposal for '{$project->title}' has been accepted!",
-                ['project_id' => $project->id, 'proposal_id' => $proposal->id]
-            );
+                // Initiate Payment and Xendit Invoice
+                $this->paymentService->initiateEscrowPayment($project, $proposal);
 
-            Log::info('Proposal accepted', ['proposal_id' => $proposal->id]);
+                // Notify Freelancer
+                $this->notificationService->send(
+                    $proposal->freelancer->user->id,
+                    'proposal_accepted',
+                    "Your proposal for '{$project->title}' has been accepted!",
+                    ['project_id' => $project->id, 'proposal_id' => $proposal->id]
+                );
 
-            return $proposal;
-        } catch (\Exception $e) {
-            Log::error('Accept proposal failed', ['error' => $e->getMessage()]);
-            throw $e;
-        }
+                Log::info('Proposal accepted', ['proposal_id' => $proposal->id]);
+
+                return $proposal;
+            } catch (\Exception $e) {
+                Log::error('Accept proposal failed', ['error' => $e->getMessage()]);
+                throw $e;
+            }
+        });
     }
 
     /**

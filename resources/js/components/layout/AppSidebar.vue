@@ -72,6 +72,12 @@
           @click="emitClose"
         />
         <NavLink
+          to="/freelancer/bank-accounts"
+          icon="bank"
+          label="Rekening Bank"
+          @click="emitClose"
+        />
+        <NavLink
           to="/freelancer/profile"
           icon="user"
           label="Profile"

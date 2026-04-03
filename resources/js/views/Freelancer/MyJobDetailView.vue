@@ -126,6 +126,74 @@
             </div>
           </div>
 
+          <!-- SECTION 1.5: Waiting for Payment -->
+          <div v-if="project.status === 'waiting_payment'" class="bg-blue-50 border border-blue-100 p-6 rounded-xl space-y-4">
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
+              </div>
+              <div>
+                <h3 class="text-blue-900 font-bold mb-1">Waiting for Escrow Payment</h3>
+                <p class="text-blue-700 text-sm">The client has accepted your proposal. Please wait for them to complete the escrow payment. You can start working once the status changes to "In Progress".</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 1.6: Bank Account Reminder -->
+          <div v-if="(project.status === 'in_progress' || project.status === 'completed') && !hasPrimaryBank" class="bg-amber-50 border border-amber-200 p-6 rounded-xl space-y-4">
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+              </div>
+              <div class="flex-1">
+                <h3 class="text-amber-900 font-bold mb-1">Rekening Bank Belum Diatur</h3>
+                <p class="text-amber-700 text-sm mb-3">Anda belum mengatur rekening bank utama. Rekening ini diperlukan agar kami bisa mengirimkan pembayaran Anda setelah proyek selesai.</p>
+                <RouterLink to="/freelancer/bank-accounts">
+                  <BaseButton variant="warning" size="sm">Atur Rekening Sekarang</BaseButton>
+                </RouterLink>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 1.7: Payout Status (Completed Only) -->
+          <div v-if="project.status === 'completed' && paymentInfo" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+            <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">Status Pembayaran</h3>
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div>
+                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Status Pencairan</p>
+                <div class="flex items-center gap-2 mt-1">
+                  <BaseBadge :variant="getReleaseStatusVariant(paymentInfo.status)">
+                    {{ formatStatus(paymentInfo.status) }}
+                  </BaseBadge>
+                  <span v-if="paymentInfo.disbursement" class="text-sm text-gray-600">
+                    ke {{ paymentInfo.disbursement.bank_account?.bank_code }} ({{ paymentInfo.disbursement.bank_account?.account_number }})
+                  </span>
+                </div>
+              </div>
+              <div class="text-right flex flex-col items-end gap-2">
+                <div>
+                  <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Jumlah Diterima</p>
+                  <p class="text-lg font-bold text-green-600">${{ paymentInfo.payment_fee?.freelancer_amount || 0 }}</p>
+                </div>
+                <!-- Claim Button -->
+                <BaseButton 
+                  v-if="paymentInfo.status === 'in_escrow' && hasPrimaryBank"
+                  variant="primary" 
+                  size="sm"
+                  @click="handleRetryPayout"
+                  :loading="isRetrying"
+                  label="Cairkan Dana"
+                />
+              </div>
+            </div>
+            <p v-if="paymentInfo.status === 'in_escrow' && !hasPrimaryBank" class="text-sm text-red-600 font-medium italic">
+              * Pencairan dana tertunda karena Anda belum mengatur rekening bank.
+            </p>
+            <p v-else-if="paymentInfo.status === 'in_escrow'" class="text-sm text-gray-500 italic">
+              * Dana akan segera dicairkan ke rekening utama Anda oleh admin.
+            </p>
+          </div>
+
           <!-- SECTION 2: Submit Work -->
           <div v-if="project.status === 'in_progress' && canSubmitWork" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
             <h2 class="text-2xl font-bold text-gray-900 border-b border-gray-200 pb-2">Submit Work</h2>
@@ -300,6 +368,7 @@ import ChatBox from '@/components/shared/ChatBox.vue'
 
 import { projectService } from '@/services/projectService'
 import { submissionService } from '@/services/submissionService'
+import apiClient from '@/services/apiClient'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -314,6 +383,9 @@ const selectedAttachment = ref<any>(null)
 const isLoading = ref(true)
 const isLoadingSubmissions = ref(true)
 const error = ref('')
+const paymentInfo = ref<any>(null)
+const hasPrimaryBank = ref(false)
+const isRetrying = ref(false)
 
 // Submission Form
 const submissionNote = ref('')
@@ -342,17 +414,61 @@ const fetchProject = async () => {
     const res = await projectService.getProject(projectId)
     project.value = res.data?.data || res.data
 
-    if (project.value.freelancer_id.user !== authStore.user?.freelancer_profile?.id) {
+    if (project.value.freelancer_id !== authStore.user?.freelancer_profile?.id) {
         error.value = 'You are not assigned to this project.'
         return
     }
 
     fetchSubmissions()
+    fetchPaymentInfo()
+    checkBankAccounts()
   } catch (err: any) {
     error.value = 'Failed to load project details.'
     console.error(err)
   } finally {
     isLoading.value = false
+  }
+}
+
+const fetchPaymentInfo = async () => {
+  try {
+    const res = await apiClient.get(`/projects/${projectId}/payment`)
+    paymentInfo.value = res.data?.data || res.data
+  } catch (err) {
+    console.error('Failed to load payment info', err)
+  }
+}
+
+const checkBankAccounts = async () => {
+  try {
+    const res = await apiClient.get('/bank-accounts')
+    const accounts = res.data?.data || []
+    hasPrimaryBank.value = accounts.some((a: any) => a.is_primary)
+  } catch (err) {
+    console.error('Failed to check bank accounts', err)
+  }
+}
+
+const getReleaseStatusVariant = (status: string) => {
+  switch (status) {
+    case 'released': return 'success'
+    case 'in_escrow': return 'info'
+    default: return 'warning'
+  }
+}
+
+const handleRetryPayout = async () => {
+  if (isRetrying.value) return
+  isRetrying.value = true
+  try {
+    await apiClient.patch(`/projects/${projectId}/retry-payout`)
+    await fetchPaymentInfo()
+    alert('Pencairan dana berhasil diinisiasi!')
+  } catch (err: any) {
+    console.error('Failed to retry payout', err)
+    alert(err.response?.data?.message || 'Gagal mencairkan dana. Pastikan rekening utama sudah diatur.')
+  } finally {
+    isRetrying.value = false
   }
 }
 

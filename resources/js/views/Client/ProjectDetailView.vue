@@ -158,7 +158,31 @@
             </div>
           </div>
 
-          
+          <!-- SECTION 1.5: Payment Required (Escrow) -->
+          <div v-if="project.status === 'waiting_payment'" class="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mt-6 space-y-4">
+            <div class="flex items-start gap-4">
+              <div class="p-3 bg-yellow-100 rounded-lg text-yellow-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </div>
+              <div class="flex-1">
+                <h3 class="text-lg font-bold text-yellow-900">Payment Required</h3>
+                <p class="text-yellow-700 text-sm">Please complete the escrow payment to start the project. Funds will be held securely until you approve the freelancer's work.</p>
+              </div>
+            </div>
+            
+            <div v-if="paymentInfo" class="bg-white p-4 rounded-lg border border-yellow-100 flex items-center justify-between gap-4">
+              <div class="min-w-0">
+                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider truncate">Transaction ID</p>
+                <p class="font-mono text-sm uppercase truncate">{{ paymentInfo.transaction_id }}</p>
+              </div>
+              <a :href="paymentInfo.payment_detail?.invoice_url" target="_blank" 
+                 class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold transition-all shadow-sm flex items-center gap-2 shrink-0">
+                Pay with Xendit
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+              </a>
+            </div>
+            <div v-else class="h-16 bg-white/50 animate-pulse rounded-lg"></div>
+          </div>
 
         </div>
 
@@ -507,6 +531,7 @@ const proposals = ref<any[]>([])
 const submissions = ref<any[]>([])
 const isPreviewOpen = ref(false)
 const selectedAttachment = ref<any>(null)
+const paymentInfo = ref<any>(null)
 
 const isLoading = ref(true)
 const isLoadingProposals = ref(true)
@@ -550,6 +575,10 @@ const fetchProject = async () => {
     } else {
        fetchProposals()
     }
+
+    if (project.value.status === 'waiting_payment') {
+      fetchPaymentInfo()
+    }
   } catch (err: any) {
     error.value = 'Failed to load project details.'
     console.error(err)
@@ -579,6 +608,15 @@ const fetchSubmissions = async () => {
     console.error('Failed to load submissions', err)
   } finally {
     isLoadingSubmissions.value = false
+  }
+}
+
+const fetchPaymentInfo = async () => {
+  try {
+    const res = await apiClient.get(`/projects/${projectId}/payment`)
+    paymentInfo.value = res.data?.data || res.data
+  } catch (err) {
+    console.error('Failed to load payment info', err)
   }
 }
 
@@ -733,9 +771,11 @@ const handleSubmitReview = async () => {
 const getStatusBadge = (status: string) => {
   switch (status) {
     case 'open': return 'info'
-    case 'in_progress': return 'warning'
+    case 'waiting_payment': return 'warning'
+    case 'in_progress': return 'primary'
     case 'completed': return 'success'
     case 'archived': return 'gray'
+    case 'cancelled': return 'danger'
     default: return 'gray'
   }
 }

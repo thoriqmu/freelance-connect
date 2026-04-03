@@ -14,7 +14,10 @@ use Illuminate\Http\UploadedFile;
 
 class SubmissionService
 {
-    public function __construct(private NotificationService $notificationService) {}
+    public function __construct(
+        private NotificationService $notificationService,
+        private PaymentService $paymentService
+    ) {}
 
     /**
      * Get submissions for a project
@@ -102,35 +105,40 @@ class SubmissionService
      */
     public function approveSubmission(Submission $submission): Submission
     {
-        try {
-            $submission->update(['status' => SubmissionStatus::ACCEPTED->value]);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($submission) {
+            try {
+                $submission->update(['status' => SubmissionStatus::ACCEPTED->value]);
 
-            // Mark project as COMPLETED
-            $submission->project->update(['status' => ProjectStatus::COMPLETED->value]);
+                // Mark project as COMPLETED
+                $submission->project->update(['status' => ProjectStatus::COMPLETED->value]);
 
-            // Notify Freelancer (Approved)
-            $this->notificationService->send(
-                $submission->freelancer->user->id,
-                'submission_approved',
-                "Your submission for '{$submission->project->title}' has been approved!",
-                ['project_id' => $submission->project_id, 'submission_id' => $submission->id]
-            );
+                // Release payment from escrow
+                $this->paymentService->releaseEscrowPayment($submission->project);
 
-            // Notify Freelancer (Project Completed)
-            $this->notificationService->send(
-                $submission->freelancer->user->id,
-                'project_completed',
-                "Project '{$submission->project->title}' is now completed.",
-                ['project_id' => $submission->project_id]
-            );
+                // Notify Freelancer (Approved)
+                $this->notificationService->send(
+                    $submission->freelancer->user->id,
+                    'submission_approved',
+                    "Your submission for '{$submission->project->title}' has been approved!",
+                    ['project_id' => $submission->project_id, 'submission_id' => $submission->id]
+                );
 
-            Log::info('Submission approved', ['submission_id' => $submission->id]);
+                // Notify Freelancer (Project Completed)
+                $this->notificationService->send(
+                    $submission->freelancer->user->id,
+                    'project_completed',
+                    "Project '{$submission->project->title}' is now completed.",
+                    ['project_id' => $submission->project_id]
+                );
 
-            return $submission;
-        } catch (\Exception $e) {
-            Log::error('Approve submission failed', ['error' => $e->getMessage()]);
-            throw $e;
-        }
+                Log::info('Submission approved and payout initiated', ['submission_id' => $submission->id]);
+
+                return $submission;
+            } catch (\Exception $e) {
+                Log::error('Approve submission failed', ['error' => $e->getMessage()]);
+                throw $e;
+            }
+        });
     }
 
     /**
