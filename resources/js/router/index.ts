@@ -24,6 +24,7 @@ const FreelancerMyJobDetailView = () => import('@/views/Freelancer/MyJobDetailVi
 const FreelancerProfileView = () => import('@/views/Freelancer/ProfileView.vue')
 const FreelancerPublicProfileView = () => import('@/views/Freelancer/PublicProfileView.vue')
 const FreelancerBankAccountsView = () => import('@/views/Freelancer/BankAccountsView.vue')
+const FreelancerEarningsView = () => import('@/views/Freelancer/EarningsView.vue')
 const NotificationsView = () => import('@/views/NotificationsView.vue')
 
 const routes: RouteRecordRaw[] = [
@@ -146,6 +147,12 @@ const routes: RouteRecordRaw[] = [
     path: '/freelancer/bank-accounts',
     name: 'freelancer-bank-accounts',
     component: FreelancerBankAccountsView,
+    meta: { requiresAuth: true, role: 'freelancer' },
+  },
+  {
+    path: '/freelancer/earnings',
+    name: 'freelancer-earnings',
+    component: FreelancerEarningsView,
     meta: { requiresAuth: true, role: 'freelancer' },
   },
   {

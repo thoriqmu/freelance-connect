@@ -140,7 +140,7 @@
           </div>
 
           <!-- SECTION 1.6: Bank Account Reminder -->
-          <div v-if="(project.status === 'in_progress' || project.status === 'completed') && !hasPrimaryBank" class="bg-amber-50 border border-amber-200 p-6 rounded-xl space-y-4">
+          <div v-if="(project.status === 'in_progress' || project.status === 'completed') && hasPrimaryBank === false" class="bg-amber-50 border border-amber-200 p-6 rounded-xl space-y-4">
             <div class="flex items-start gap-4">
               <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -384,7 +384,7 @@ const isLoading = ref(true)
 const isLoadingSubmissions = ref(true)
 const error = ref('')
 const paymentInfo = ref<any>(null)
-const hasPrimaryBank = ref(false)
+const hasPrimaryBank = ref<boolean | null>(null)
 const isRetrying = ref(false)
 
 // Submission Form
@@ -414,14 +414,16 @@ const fetchProject = async () => {
     const res = await projectService.getProject(projectId)
     project.value = res.data?.data || res.data
 
-    if (project.value.freelancer_id !== authStore.user?.freelancer_profile?.id) {
-        error.value = 'You are not assigned to this project.'
-        return
+    if (project.value.freelancer_id.user !== authStore.user?.freelancer_profile?.id) {
+      error.value = 'You are not assigned to this project.'
+      return
     }
 
-    fetchSubmissions()
-    fetchPaymentInfo()
-    checkBankAccounts()
+    await Promise.all([
+      fetchSubmissions(),
+      fetchPaymentInfo(),
+      checkBankAccounts(),
+    ])
   } catch (err: any) {
     error.value = 'Failed to load project details.'
     console.error(err)

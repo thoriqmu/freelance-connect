@@ -16,6 +16,7 @@ use App\Http\Controllers\SavedJobController;
 use App\Http\Controllers\SkillController;
 use App\Http\Controllers\Api\XenditWebhookController;
 use App\Http\Controllers\BankAccountController;
+use App\Http\Controllers\EarningController;
 
 Route::prefix('v1')->group(function () {
     // Public Webhooks
@@ -145,5 +146,11 @@ Route::prefix('v1')->group(function () {
 
         // Payouts (Freelancer only)
         Route::patch('projects/{project}/retry-payout', [PaymentController::class, 'retryPayout']);
+
+        // Earnings (Freelancer only)
+        Route::prefix('earnings')->middleware('role:freelancer')->group(function () {
+            Route::get('/', [EarningController::class, 'index']);
+            Route::post('/{id}/withdraw', [EarningController::class, 'withdraw']);
+        });
     });
 });

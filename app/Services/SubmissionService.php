@@ -112,9 +112,18 @@ class SubmissionService
                 // Mark project as COMPLETED
                 $submission->project->update(['status' => ProjectStatus::COMPLETED->value]);
 
-                // Release payment from escrow
-                $this->paymentService->releaseEscrowPayment($submission->project);
+                // Record Earning for Freelancer (Wallet system)
+                $payment = $submission->project->payment;
+                \App\Models\Earning::create([
+                    'freelancer_id' => $submission->freelancer->user->id,
+                    'project_id' => $submission->project_id,
+                    'payment_id' => $payment->id,
+                    'amount' => $payment->paymentFee->freelancer_amount,
+                    'status' => 'available',
+                ]);
 
+                // Payment stays 'in_escrow' until manual withdrawal
+                
                 // Notify Freelancer (Approved)
                 $this->notificationService->send(
                     $submission->freelancer->user->id,
